@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "d594873706a4a7c0d8e0",
+  "position": {
+    "x": 657.77384898710864,
+    "y": 151.87133210558625,
+    "z": 5000,
+    "height": 115.66359729895642,
+    "width": 295.69650092081031,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "OPEX par boe"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.OPEX par boe",
+              "nativeQueryRef": "OPEX par boe",
+              "displayName": "OPEX par baril / OPEX per boe"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

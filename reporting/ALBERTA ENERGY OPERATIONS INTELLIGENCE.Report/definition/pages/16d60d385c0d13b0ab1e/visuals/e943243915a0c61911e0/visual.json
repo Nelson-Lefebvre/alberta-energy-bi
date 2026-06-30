@@ -1,0 +1,69 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "e943243915a0c61911e0",
+  "position": {
+    "x": 618.75,
+    "y": 575,
+    "z": 7000,
+    "height": 135,
+    "width": 651.25,
+    "tabOrder": 6000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_puits"
+                    }
+                  },
+                  "Property": "uwi"
+                }
+              },
+              "queryRef": "dim_puits.uwi",
+              "nativeQueryRef": "uwi",
+              "displayName": "UWI"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_puits"
+                    }
+                  },
+                  "Property": "operator_name"
+                }
+              },
+              "queryRef": "dim_puits.operator_name",
+              "nativeQueryRef": "operator_name",
+              "displayName": "Opérateur / Operator"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Production BOE"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Production BOE",
+              "nativeQueryRef": "Production BOE",
+              "displayName": "Production (boe)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

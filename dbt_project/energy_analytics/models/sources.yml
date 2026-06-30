@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: main
+    description: "Parquet du pipeline Python (data/processed) exposés en sources DuckDB."
+    # dbt-duckdb : {name} est remplacé par le nom de la table. Chemin relatif au
+    # cwd de lancement de dbt (dbt_project/energy_analytics).
+    meta:
+      external_location: "../../data/processed/{name}.parquet"
+    tables:
+      - name: petrinex24
+        description: "Production Petrinex 24 mois — nettoyée par 01_ingest_petrinex.py"
+      - name: dim_puits
+        description: "Métadonnées puits AER ST37 — lat/lon dérivées (02_ingest_aer_wells.py)"
+      - name: dim_prix
+        description: "Prix WCS CAD mensuel — Yahoo Finance + Banque du Canada (03)"
+      - name: fact_couts
+        description: "OPEX/CAPEX simulés — paramètres AER Annual Report 2023 (04)"
+      - name: fact_emissions
+        description: "Émissions ESG Scope 1 — facteurs NIR 2024 (05)"

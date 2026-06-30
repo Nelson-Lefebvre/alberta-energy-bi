@@ -1,0 +1,13 @@
+role Nord
+	modelPermission: read
+
+	tablePermission dim_region = dim_region[region] = "Nord"
+
+	tablePermission dim_puits = dim_puits[region] = "Nord"
+
+	tablePermission fact_kpis_mensuels = fact_kpis_mensuels[region] = "Nord"
+
+	tablePermission fact_emissions_scope = fact_emissions_scope[region] = "Nord"
+
+	annotation PBI_Id = ba4353dbee88433281791fd2875c4656
+

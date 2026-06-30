@@ -1,0 +1,143 @@
+table fact_production_enriched
+	lineageTag: 7e9e27d8-415f-45cf-9422-5258626b83b5
+
+	measure 'Moyenne mobile de Moyenne de production_cumulative_boe' =
+			
+			IF(
+				ISFILTERED('dim_puits'[spud_date]),
+				ERROR("Les mesures rapides de Time Intelligence peuvent être regroupées ou filtrées seulement par la hiérarchie de dates ou les colonnes de dates principales fournies par Power BI."),
+				VAR __LAST_DATE = ENDOFMONTH('dim_puits'[spud_date].[Date])
+				VAR __DATE_PERIOD =
+					DATESBETWEEN(
+						'dim_puits'[spud_date].[Date],
+						STARTOFMONTH(DATEADD(__LAST_DATE, -3, MONTH)),
+						__LAST_DATE
+					)
+				RETURN
+					AVERAGEX(
+						CALCULATETABLE(
+							SUMMARIZE(
+								VALUES('dim_puits'),
+								'dim_puits'[spud_date].[Année],
+								'dim_puits'[spud_date].[NoTrimestre],
+								'dim_puits'[spud_date].[Trimestre],
+								'dim_puits'[spud_date].[NoMois],
+								'dim_puits'[spud_date].[Mois]
+							),
+							__DATE_PERIOD
+						),
+						CALCULATE(
+							AVERAGE('fact_production_enriched'[production_cumulative_boe]),
+							ALL('dim_puits'[spud_date].[Jour])
+						)
+					)
+			)
+		lineageTag: 652887d2-76ac-4b9f-8313-e3d9c55f86cd
+
+		extendedProperty MeasureTemplate =
+				{
+				  "version": 0,
+				  "daxTemplateName": "RollingAverage"
+				}
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 669a832e-c7d5-4947-a405-183a00233289
+		summarizeBy: none
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column uwi
+		dataType: string
+		lineageTag: 590ca038-2169-4346-935b-02eda22f98aa
+		summarizeBy: none
+		sourceColumn: uwi
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_type
+		dataType: string
+		lineageTag: 6132a689-d8b2-4378-9851-8802b7aaad51
+		summarizeBy: none
+		sourceColumn: product_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column activity_type
+		dataType: string
+		lineageTag: 2c2c98e2-692d-4648-97b6-004a98b86cc4
+		summarizeBy: none
+		sourceColumn: activity_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column volume_boe
+		dataType: double
+		lineageTag: 5b59394e-d4f2-49de-b1b8-ccb011286ff0
+		summarizeBy: none
+		sourceColumn: volume_boe
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column volume_brut
+		dataType: double
+		lineageTag: 7904e3ed-61a1-436f-8078-0db9216e6d15
+		summarizeBy: none
+		sourceColumn: volume_brut
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column wcs_cad
+		dataType: double
+		lineageTag: 50892868-2df2-44d1-967d-1d03d779e689
+		summarizeBy: none
+		sourceColumn: wcs_cad
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column revenu_estime_cad
+		dataType: double
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: e63b7611-6614-4d6d-968d-8d8076df8ba9
+		summarizeBy: none
+		sourceColumn: revenu_estime_cad
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-CA"}
+
+	column production_cumulative_boe
+		dataType: double
+		lineageTag: d1916915-7d84-46ff-bba2-746d0b4a22af
+		summarizeBy: none
+		sourceColumn: production_cumulative_boe
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_production_enriched = m
+		mode: import
+		source =
+				let
+				  Source = Odbc.DataSource("Driver={DuckDB Driver};Database=C:\Users\NelsonX16\Documents\GitHub\alberta-energy-bi\data\energy.duckdb;access_mode=READ_ONLY", [HierarchicalNavigation = true]),
+				  #"Navigation 1" = Source{[Name = "energy", Kind = "Database"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Name = "main", Kind = "Schema"]}[Data],
+				  #"Navigation 3" = #"Navigation 2"{[Name = "fact_production_enriched", Kind = "Table"]}[Data]
+				in
+				  #"Navigation 3"
+
+	annotation PBI_ResultType = Table
+

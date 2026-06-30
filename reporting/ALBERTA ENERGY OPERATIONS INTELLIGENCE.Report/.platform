@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "ALBERTA ENERGY OPERATIONS INTELLIGENCE"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "5293c60b-a6f9-40f8-9bd5-5e68356f5fff"
+  }
+}

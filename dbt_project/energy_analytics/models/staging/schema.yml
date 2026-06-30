@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: stg_petrinex_production
+    description: "Production Petrinex typée + date_key mensuel."
+    columns:
+      - name: uwi
+        description: "Unique Well Identifier (clé de jointure puits)."
+        tests: [not_null]
+      - name: date_key
+        description: "Clé temporelle YYYYMM."
+        tests: [not_null]
+      - name: volume_boe
+        description: "Volume converti en BOE."
+        tests: [not_null]
+      - name: product_type
+        tests:
+          - accepted_values:
+              values: ['OIL', 'GAS', 'WATER', 'COND']
+      - name: activity_type
+        tests:
+          - accepted_values:
+              values: ['PROD', 'SHUTIN', 'FUEL', 'VENT']
+
+  - name: stg_aer_wells
+    description: "Dimension puits ST37 — une ligne par UWI."
+    columns:
+      - name: uwi
+        description: "Clé primaire de la dimension puits."
+        tests: [not_null, unique]
+      - name: latitude
+        tests: [not_null]
+      - name: longitude
+        tests: [not_null]
+
+  - name: stg_eia_prices
+    description: "Prix WTI/WCS mensuels — une ligne par mois."
+    columns:
+      - name: date_key
+        tests: [not_null, unique]
+      - name: wcs_cad
+        tests: [not_null]
+
+  - name: stg_costs
+    description: "OPEX/CAPEX simulés par puits et par mois."
+    columns:
+      - name: uwi
+        tests: [not_null]
+      - name: date_key
+        tests: [not_null]
+
+  - name: stg_emissions
+    description: "Émissions Scope 1 par puits et par mois."
+    columns:
+      - name: uwi
+        tests: [not_null]
+      - name: date_key
+        tests: [not_null]
+      - name: scope
+        tests:
+          - accepted_values:
+              values: ['Scope1']

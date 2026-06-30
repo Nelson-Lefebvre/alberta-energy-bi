@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "d97aaa05842d1e712d99",
+  "position": {
+    "x": 959.50497237569061,
+    "y": 137.79054634745242,
+    "z": 2000,
+    "height": 100.57704112952732,
+    "width": 296.70227133210557,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Marge Opérationnelle %"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Marge Opérationnelle %",
+              "nativeQueryRef": "Marge Opérationnelle %",
+              "displayName": "Marge opérationnelle, hors redevances / Operating margin, excl. royalties"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

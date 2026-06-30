@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "2664d8a050d573303006",
+  "position": {
+    "x": 335.52537268483661,
+    "y": 145.55880138533354,
+    "z": 11000,
+    "height": 115.95362144255384,
+    "width": 296.051799427797,
+    "tabOrder": 10000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Nb puits ACTIVE"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Nb puits ACTIVE",
+              "nativeQueryRef": "Nb puits ACTIVE",
+              "displayName": "Puits actifs / Active wells"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

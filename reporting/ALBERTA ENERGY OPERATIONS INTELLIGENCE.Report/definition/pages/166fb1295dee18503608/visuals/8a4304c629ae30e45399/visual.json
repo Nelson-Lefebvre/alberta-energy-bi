@@ -1,0 +1,134 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "8a4304c629ae30e45399",
+  "position": {
+    "x": 953.470349907919,
+    "y": 278.59840392879067,
+    "z": 8000,
+    "height": 418.40049109883364,
+    "width": 315.81190914671578,
+    "tabOrder": 7000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_puits"
+                    }
+                  },
+                  "Property": "operator_name"
+                }
+              },
+              "queryRef": "dim_puits.operator_name",
+              "nativeQueryRef": "Opérateur",
+              "displayName": "Opérateur / Operator"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_production_enriched"
+                        }
+                      },
+                      "Property": "volume_boe"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "fact_production_enriched.volume_boe",
+              "nativeQueryRef": "Production",
+              "displayName": "Production (boe)"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_puits"
+                        }
+                      },
+                      "Property": "uwi"
+                    }
+                  },
+                  "Function": 5
+                }
+              },
+              "queryRef": "dim_puits.uwi",
+              "nativeQueryRef": "Nombre de puits",
+              "displayName": "Puits / Wells"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Production par puits"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Production par puits",
+              "nativeQueryRef": "Production par puits",
+              "displayName": "Prod./puits / Prod./well"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "dim_puits"
+                  }
+                },
+                "Property": "operator_name"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "164.54992278268065D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_puits.operator_name"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {}
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

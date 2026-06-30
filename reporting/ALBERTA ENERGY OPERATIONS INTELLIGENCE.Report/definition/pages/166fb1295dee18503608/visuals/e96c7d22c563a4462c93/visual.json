@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "e96c7d22c563a4462c93",
+  "position": {
+    "x": 9.05193370165746,
+    "y": 152.87710251688154,
+    "z": 4000,
+    "height": 115.66359729895642,
+    "width": 295.69650092081031,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Production BOE"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Production BOE",
+              "nativeQueryRef": "Production BOE",
+              "displayName": "Production nette / Net production (boe)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "2f6e4a04a58e193b13dd",
+  "position": {
+    "x": 332.437694166379,
+    "y": 136,
+    "z": 4000,
+    "height": 100,
+    "width": 295.85364169830859,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "CO2 Scope 1 (t)"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.CO2 Scope 1 (t)",
+              "nativeQueryRef": "CO2 Scope 1 (t)",
+              "displayName": "CO₂ Scope 1 (t)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

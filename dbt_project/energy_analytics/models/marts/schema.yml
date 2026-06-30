@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Dimension date mensuelle (24 mois)."
+    columns:
+      - name: date_key
+        tests: [not_null, unique]
+      - name: date
+        tests: [not_null]
+
+  - name: dim_puits
+    description: "Dimension puits (clé uwi)."
+    columns:
+      - name: uwi
+        tests: [not_null, unique]
+
+  - name: fact_production_enriched
+    description: "Production enrichie (revenu, cumul). Grain : ligne de production."
+    columns:
+      - name: uwi
+        description: "FK vers dim_puits. ~8% d'orphelins (couverture ST37) -> warn."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_puits')
+              field: uwi
+              config:
+                severity: warn
+      - name: date_key
+        tests: [not_null]
+
+  - name: fact_kpis_mensuels
+    description: "KPIs agrégés (date_key x région)."
+    columns:
+      - name: date_key
+        tests: [not_null]
+
+  - name: fact_emissions_scope
+    description: "Émissions agrégées (date_key x région x scope)."
+    columns:
+      - name: date_key
+        tests: [not_null]
+      - name: scope
+        tests:
+          - accepted_values:
+              values: ['Scope1']

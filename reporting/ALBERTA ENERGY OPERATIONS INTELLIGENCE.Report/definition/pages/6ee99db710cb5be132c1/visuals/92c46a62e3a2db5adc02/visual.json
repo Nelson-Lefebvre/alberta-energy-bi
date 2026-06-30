@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "92c46a62e3a2db5adc02",
+  "position": {
+    "x": 343.57197100448735,
+    "y": 136,
+    "z": 3000,
+    "height": 100,
+    "width": 295.85364169830859,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Run-rate annualisé"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Run-rate annualisé",
+              "nativeQueryRef": "Run-rate annualisé",
+              "displayName": "Run-rate annualisé / Annualized run-rate (boe)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

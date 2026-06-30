@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "1055aca9c91ea6017748",
+  "position": {
+    "x": 652.150500517777,
+    "y": 136,
+    "z": 2000,
+    "height": 100,
+    "width": 295.85364169830859,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Tendance YoY %"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Tendance YoY %",
+              "nativeQueryRef": "Tendance YoY %",
+              "displayName": "Tendance YoY / YoY trend"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

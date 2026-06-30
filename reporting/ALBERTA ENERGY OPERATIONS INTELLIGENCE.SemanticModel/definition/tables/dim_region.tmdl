@@ -1,0 +1,23 @@
+table dim_region
+	lineageTag: a1b2c3d4-0001-4000-8000-000000000010
+
+	column region
+		dataType: string
+		lineageTag: a1b2c3d4-0001-4000-8000-000000000011
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_region = m
+		mode: import
+		source =
+				let
+				  Source = Odbc.DataSource("Driver={DuckDB Driver};Database=C:\Users\NelsonX16\Documents\GitHub\alberta-energy-bi\data\energy.duckdb;access_mode=READ_ONLY", [HierarchicalNavigation = true]),
+				  #"Navigation 1" = Source{[Name = "energy", Kind = "Database"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Name = "main", Kind = "Schema"]}[Data],
+				  #"Navigation 3" = #"Navigation 2"{[Name = "dim_region", Kind = "Table"]}[Data]
+				in
+				  #"Navigation 3"
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,71 @@
+table fact_emissions_scope
+	lineageTag: d660feeb-b179-4d65-b1c1-0ead423eb14f
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 8f9c6c27-8bfe-4565-b113-653c149b9083
+		summarizeBy: none
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		lineageTag: 26340ab0-f39e-4af6-9e65-3a2e3919405f
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	column scope
+		dataType: string
+		lineageTag: 96539429-1beb-434d-b5d0-d8d7cd40f668
+		summarizeBy: none
+		sourceColumn: scope
+
+		annotation SummarizationSetBy = Automatic
+
+	column co2_tonnes
+		dataType: double
+		lineageTag: 0f377eba-34ca-42c9-9250-c36cef28ad31
+		summarizeBy: none
+		sourceColumn: co2_tonnes
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ch4_tonnes
+		dataType: double
+		lineageTag: 69c6dd79-5c7a-48bd-af33-1535443bced0
+		summarizeBy: none
+		sourceColumn: ch4_tonnes
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column co2eq_total
+		dataType: double
+		lineageTag: df73ed83-536a-4072-b2e5-90966b4083a9
+		summarizeBy: none
+		sourceColumn: co2eq_total
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_emissions_scope = m
+		mode: import
+		source =
+				let
+				  Source = Odbc.DataSource("Driver={DuckDB Driver};Database=C:\Users\NelsonX16\Documents\GitHub\alberta-energy-bi\data\energy.duckdb;access_mode=READ_ONLY", [HierarchicalNavigation = true]),
+				  #"Navigation 1" = Source{[Name = "energy", Kind = "Database"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Name = "main", Kind = "Schema"]}[Data],
+				  #"Navigation 3" = #"Navigation 2"{[Name = "fact_emissions_scope", Kind = "Table"]}[Data]
+				in
+				  #"Navigation 3"
+
+	annotation PBI_ResultType = Table
+

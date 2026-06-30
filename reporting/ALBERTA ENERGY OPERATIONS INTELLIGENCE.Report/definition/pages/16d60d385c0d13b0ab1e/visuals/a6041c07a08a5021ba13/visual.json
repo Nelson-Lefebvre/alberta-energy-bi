@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "a6041c07a08a5021ba13",
+  "position": {
+    "x": 27.155801104972376,
+    "y": 23.132719459791282,
+    "z": 13000,
+    "height": 84.484714548802941,
+    "width": 229.31565377532229,
+    "tabOrder": 12000
+  },
+  "visual": {
+    "visualType": "image",
+    "objects": {
+      "image": [
+        {
+          "properties": {
+            "sourceType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'imageUrl'"
+                }
+              }
+            },
+            "sourceUrl": {
+              "expr": {
+                "Literal": {
+                  "Value": "'https://rdpassociates.com/wp-content/uploads/2019/07/Alberta_wordmark_2009.svg_.png'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

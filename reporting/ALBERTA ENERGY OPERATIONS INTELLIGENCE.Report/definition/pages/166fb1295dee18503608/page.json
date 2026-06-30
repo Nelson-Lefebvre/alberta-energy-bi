@@ -1,0 +1,13 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "166fb1295dee18503608",
+  "displayName": "P1 - Executive summary",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "pageBinding": {
+    "name": "7049c57a8d1a18bed602",
+    "type": "Default",
+    "parameters": []
+  }
+}

@@ -1,0 +1,108 @@
+table dim_puits
+	lineageTag: 059ca9d5-068a-43fe-8123-734e07e5b0da
+
+	column uwi
+		dataType: string
+		lineageTag: e96e25b0-33c3-4d6d-959a-1df1d98bd8c9
+		summarizeBy: none
+		sourceColumn: uwi
+
+		annotation SummarizationSetBy = Automatic
+
+	column operator_name
+		dataType: string
+		lineageTag: a324d0f3-419e-4387-903e-4dcbf00f9c11
+		summarizeBy: none
+		sourceColumn: operator_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column area
+		dataType: string
+		lineageTag: 140b39b2-2eb4-4f88-9e31-11d5acb0e78a
+		summarizeBy: none
+		sourceColumn: area
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		lineageTag: 1d13f487-d21a-415f-996b-432ff8ddd715
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	column field
+		dataType: string
+		lineageTag: c0b9fc26-0ece-4016-98ff-179888d192ba
+		summarizeBy: none
+		sourceColumn: field
+
+		annotation SummarizationSetBy = Automatic
+
+	column well_type
+		dataType: string
+		lineageTag: d1c80218-1b45-469f-a204-8b6d00fa60c8
+		summarizeBy: none
+		sourceColumn: well_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column status
+		dataType: string
+		lineageTag: f7290d85-e4c6-4b7b-9d96-df21c0399d3a
+		summarizeBy: none
+		sourceColumn: status
+
+		annotation SummarizationSetBy = Automatic
+
+	column spud_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 5d746387-a62d-4e12-bd91-813ef6961ea9
+		summarizeBy: none
+		sourceColumn: spud_date
+
+		variation Variation
+			isDefault
+			relationship: 39a35c3e-ab29-4917-b24e-4b9416616876
+			defaultHierarchy: LocalDateTable_f79fc0fe-d023-456e-95bc-9892a46ae1c5.'Hiérarchie de dates'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column latitude
+		dataType: double
+		lineageTag: 185f0669-f5ac-475b-9dc4-169aa87bf707
+		summarizeBy: sum
+		sourceColumn: latitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column longitude
+		dataType: double
+		lineageTag: 72ef662c-25c3-4bee-a899-7b532332956e
+		summarizeBy: sum
+		sourceColumn: longitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition dim_puits = m
+		mode: import
+		source =
+				let
+				  Source = Odbc.DataSource("Driver={DuckDB Driver};Database=C:\Users\NelsonX16\Documents\GitHub\alberta-energy-bi\data\energy.duckdb;access_mode=READ_ONLY", [HierarchicalNavigation = true]),
+				  #"Navigation 1" = Source{[Name = "energy", Kind = "Database"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Name = "main", Kind = "Schema"]}[Data],
+				  #"Navigation 3" = #"Navigation 2"{[Name = "dim_puits", Kind = "Table"]}[Data]
+				in
+				  #"Navigation 3"
+
+	annotation PBI_ResultType = Table
+

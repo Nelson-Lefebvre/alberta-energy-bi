@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "ac7c350d7ed50682bc0d",
+  "position": {
+    "x": 973.58575813382447,
+    "y": 151.87133210558625,
+    "z": 9000,
+    "height": 115.66359729895642,
+    "width": 295.69650092081031,
+    "tabOrder": 8000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Intensité carbone"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Intensité carbone",
+              "nativeQueryRef": "Intensité carbone",
+              "displayName": "Intensité carbone / Carbon intensity"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

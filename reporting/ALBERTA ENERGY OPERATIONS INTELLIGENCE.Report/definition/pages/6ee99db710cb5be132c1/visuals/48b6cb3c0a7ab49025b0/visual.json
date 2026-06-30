@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "48b6cb3c0a7ab49025b0",
+  "position": {
+    "x": 960.7290300310666,
+    "y": 136,
+    "z": 1000,
+    "height": 100,
+    "width": 295.85364169830859,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Variabilité CV %"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Variabilité CV %",
+              "nativeQueryRef": "Variabilité CV %",
+              "displayName": "Variabilité CV / Variability CV"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

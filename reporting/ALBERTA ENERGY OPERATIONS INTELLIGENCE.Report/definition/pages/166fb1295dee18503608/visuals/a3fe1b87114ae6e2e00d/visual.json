@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "a3fe1b87114ae6e2e00d",
+  "position": {
+    "x": 328.88692449355432,
+    "y": 152.87710251688154,
+    "z": 6000,
+    "height": 115.66359729895642,
+    "width": 295.69650092081031,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Revenu Estimé CAD"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Revenu Estimé CAD",
+              "nativeQueryRef": "Revenu Estimé CAD",
+              "displayName": "Revenu estimé / Est. revenue (CAD)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

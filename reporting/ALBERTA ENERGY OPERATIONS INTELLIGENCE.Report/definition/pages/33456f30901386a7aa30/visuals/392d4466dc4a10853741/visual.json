@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "392d4466dc4a10853741",
+  "position": {
+    "x": 652.150500517777,
+    "y": 136,
+    "z": 3000,
+    "height": 100,
+    "width": 295.85364169830859,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "CO2eq Total (t)"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.CO2eq Total (t)",
+              "nativeQueryRef": "CO2eq Total (t)",
+              "displayName": "CO₂ eq total (t)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "79998a9590367a8bcb10",
+  "position": {
+    "x": 16.25,
+    "y": 145,
+    "z": 10000,
+    "height": 116.25,
+    "width": 296.25,
+    "tabOrder": 9000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Nb puits producteurs"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Nb puits producteurs",
+              "nativeQueryRef": "Nb puits producteurs",
+              "displayName": "Puits producteurs / Producing wells"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

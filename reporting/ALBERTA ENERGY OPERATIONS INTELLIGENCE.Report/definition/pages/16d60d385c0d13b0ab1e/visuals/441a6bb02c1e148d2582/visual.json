@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "441a6bb02c1e148d2582",
+  "position": {
+    "x": 956.25,
+    "y": 145,
+    "z": 9000,
+    "height": 116.25,
+    "width": 313.75,
+    "tabOrder": 8000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Production par puits"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Production par puits",
+              "nativeQueryRef": "Production par puits",
+              "displayName": "Production/puits / Production per well (boe)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

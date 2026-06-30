@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "514cf7f78e5c0e40b77d",
+  "position": {
+    "x": 23.8591646530894,
+    "y": 136,
+    "z": 0,
+    "height": 100,
+    "width": 295.85364169830859,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
+                    }
+                  },
+                  "Property": "Production dernier mois"
+                }
+              },
+              "queryRef": "fact_kpis_mensuels.Production dernier mois",
+              "nativeQueryRef": "Production dernier mois",
+              "displayName": "Production dernier mois / Last month (boe)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

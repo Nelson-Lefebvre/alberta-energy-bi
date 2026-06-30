@@ -1,0 +1,14 @@
+.venv/
+data/raw/*
+data/processed/*.parquet
+data/processed/*.csv
+*.duckdb
+.env
+__pycache__/
+dbt_project/energy_analytics/profiles.yml
+dbt_project/energy_analytics/target/
+dbt_project/energy_analytics/logs/
+dbt_project/energy_analytics/dbt_packages/
+powerbi/*.pbix
+reporting/*.pbix
+*.pbix

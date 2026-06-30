@@ -130,5 +130,75 @@
       ]
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "ee344630e843da00d39c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_puits"
+              }
+            },
+            "Property": "operator_name"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "838a08845adbd31f41d6",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_production_enriched"
+                  }
+                },
+                "Property": "volume_boe"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "7a05ee3597429c339498",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "dim_puits"
+                  }
+                },
+                "Property": "uwi"
+              }
+            },
+            "Function": 5
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "f277554a9b6fa577124c",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_kpis_mensuels"
+              }
+            },
+            "Property": "Production par puits"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

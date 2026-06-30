@@ -21,3 +21,4 @@ table dim_region
 				  #"Navigation 3"
 
 	annotation PBI_ResultType = Table
+

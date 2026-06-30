@@ -12,3 +12,6 @@ dbt_project/energy_analytics/dbt_packages/
 powerbi/*.pbix
 reporting/*.pbix
 *.pbix
+
+# Artefacts locaux Power BI Desktop (cache binaire + settings machine)
+**/.pbi/

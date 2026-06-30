@@ -1,13 +1,13 @@
 role Sud
 	modelPermission: read
 
-	tablePermission dim_region = dim_region[region] = "Sud"
-
 	tablePermission dim_puits = dim_puits[region] = "Sud"
 
 	tablePermission fact_kpis_mensuels = fact_kpis_mensuels[region] = "Sud"
 
 	tablePermission fact_emissions_scope = fact_emissions_scope[region] = "Sud"
+
+	tablePermission dim_region = dim_region[region] = "Sud"
 
 	annotation PBI_Id = 2f2ffc215c704f62a2dc0c03f8e3f0be
 

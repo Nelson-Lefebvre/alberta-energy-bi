@@ -15,8 +15,8 @@ with aer as (
 ),
 
 residus as (
-    select distinct
-        p.uwi,
+    select
+        uwi,
         cast(null as varchar)         as operator_name,
         cast(null as varchar)         as area,
         'Puits hors référentiel AER'  as region,
@@ -26,11 +26,20 @@ residus as (
         cast(null as date)            as spud_date,
         cast(null as double)          as latitude,
         cast(null as double)          as longitude
-    from {{ ref('stg_petrinex_production') }} p
-    left join aer using (uwi)
-    where aer.uwi is null
-      and p.activity_type = 'PROD'
-      and p.product_type <> 'WATER'
+    from (
+        select
+            p.uwi,
+            -- Power BI matche les clés en INSENSIBLE à la casse/espaces, alors que le
+            -- join DuckDB est sensible. On compare/dédoublonne donc en NORMALISÉ
+            -- (upper+trim) pour ne PAS ré-ajouter un uwi déjà dans l'AER sous une casse
+            -- différente (ex. ...W400 vs ...w400) -> sinon doublon clé côté PBI.
+            row_number() over (partition by upper(trim(p.uwi)) order by p.uwi) as rn
+        from {{ ref('stg_petrinex_production') }} p
+        where p.activity_type = 'PROD'
+          and p.product_type <> 'WATER'
+          and upper(trim(p.uwi)) not in (select upper(trim(uwi)) from aer)
+    )
+    where rn = 1
 )
 
 select * from aer

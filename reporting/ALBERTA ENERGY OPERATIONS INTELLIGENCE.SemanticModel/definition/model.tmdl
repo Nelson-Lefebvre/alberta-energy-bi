@@ -20,8 +20,8 @@ ref table LocalDateTable_f79fc0fe-d023-456e-95bc-9892a46ae1c5
 ref table fact_emissions_scope
 ref table fact_kpis_mensuels
 ref table fact_production_enriched
-ref table dim_region
 ref table LocalDateTable_516a0e7d-a4f7-48fe-a32d-e7b7b05a008a
+ref table dim_region
 
 ref role Nord
 ref role Sud

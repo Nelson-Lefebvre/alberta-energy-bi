@@ -20,14 +20,14 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "dim_puits"
+                      "Entity": "dim_region"
                     }
                   },
-                  "Property": "operator_name"
+                  "Property": "region"
                 }
               },
-              "queryRef": "dim_puits.operator_name",
-              "nativeQueryRef": "operator_name",
+              "queryRef": "dim_region.region",
+              "nativeQueryRef": "region",
               "active": true
             }
           ]
@@ -83,7 +83,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Opérateur / Operator'"
+                  "Value": "'Région / Region'"
                 }
               }
             }

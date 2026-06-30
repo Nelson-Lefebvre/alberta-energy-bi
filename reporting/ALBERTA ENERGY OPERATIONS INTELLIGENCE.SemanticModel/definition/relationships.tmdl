@@ -37,3 +37,7 @@ relationship a1b2c3d4-0002-4000-8000-000000000013
 	fromColumn: fact_kpis_mensuels.region
 	toColumn: dim_region.region
 
+relationship a1b2c3d4-0002-4000-8000-000000000014
+	fromColumn: fact_emissions_scope.region
+	toColumn: dim_region.region
+

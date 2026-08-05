@@ -15,8 +15,6 @@ Dashboard analytique end‑to‑end simulant le centre de pilotage d'une opérat
 > ceux du modèle actuel. Le projet continue d'évoluer : certains modules sont encore en
 > cours d'affinage (voir §10) et les chiffres peuvent bouger d'une itération à l'autre.
 
-📊 *Rapport Power BI : à publier (Publish to Web)* · 📚 *[Documentation dbt](docs/dbt/index.html)*
-
 ---
 
 ## 1. Contexte métier
@@ -130,6 +128,12 @@ Schéma en étoile, matérialisé dans `data/energy.duckdb` :
   `stg_costs`, `stg_emissions`
 - **Marts** (tables) : `dim_date`, `dim_puits`, `dim_region`,
   `fact_production_enriched`, `fact_kpis_mensuels`, `fact_emissions_scope`
+
+![Schéma en étoile — dimensions, faits et cardinalités](docs/diagramme_bdd.png)
+
+> Le diagramme est **en retard de deux évolutions** : `dim_region` (dimension conforme,
+> décrite plus bas) n'y figure pas encore, et `fact_production_enriched` porte désormais
+> aussi `opex_cad` et `co2_tonnes`. Le reste — grains, clés et cardinalités — est à jour.
 
 `dim_region` est la **dimension conforme** : `dim_puits` et `fact_kpis_mensuels` ne sont
 pas reliés entre eux, donc un slicer posé sur la colonne d'un fait ne filtrerait que ce

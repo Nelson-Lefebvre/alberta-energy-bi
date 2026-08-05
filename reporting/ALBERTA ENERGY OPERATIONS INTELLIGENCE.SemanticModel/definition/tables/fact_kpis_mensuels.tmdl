@@ -43,7 +43,11 @@ table fact_kpis_mensuels
 		lineageTag: 7f000001-0000-4000-8000-000000000005
 
 	/// Part de production de la région dans le total (toutes régions confondues).
-	measure 'Part région production %' = DIVIDE ( SUM ( fact_kpis_mensuels[production_boe] ), CALCULATE ( SUM ( fact_kpis_mensuels[production_boe] ), REMOVEFILTERS ( fact_kpis_mensuels[region] ) ) )
+	/// REMOVEFILTERS porte sur dim_region, pas sur la colonne du fait : les slicers région
+	/// des pages filtrent la dimension conforme, et retirer le filtre côté fait n'aurait
+	/// donc rien retiré du tout — le dénominateur restait filtré et la mesure renvoyait
+	/// 100 % en permanence.
+	measure 'Part région production %' = DIVIDE ( [Production BOE], CALCULATE ( [Production BOE], REMOVEFILTERS ( dim_region ) ) )
 		formatString: 0.0%;-0.0%;0.0%
 		displayFolder: 1 Production
 		lineageTag: 7f000001-0000-4000-8000-000000000006

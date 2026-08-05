@@ -3,6 +3,11 @@
 Le README principal intègre cinq images depuis ce dossier. Les noms de fichiers sont
 imposés — le README pointe dessus en dur :
 
+> Les captures actuelles ont été produites par export PDF puis conversion
+> (`pdftoppm -png -r 120`), soit 1 660 × 960 px. Elles reflètent le modèle **après** la
+> correction du facteur d'échelle gaz et de l'assiette des émissions : OPEX/boe 17,48 $
+> et intensité 0,055. Toute capture antérieure affichant 9,21 $ ou 0,060 est périmée.
+
 | Fichier attendu | Page du rapport |
 |---|---|
 | `p1_executive.png` | P1 — Executive Summary |

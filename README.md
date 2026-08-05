@@ -4,10 +4,16 @@
 ![dbt](https://img.shields.io/badge/dbt-1.11-FF694B?logo=dbt&logoColor=white)
 ![DuckDB](https://img.shields.io/badge/DuckDB-1.10-FFF000?logo=duckdb&logoColor=black)
 ![Power BI](https://img.shields.io/badge/Power%20BI-Desktop-F2C811?logo=powerbi&logoColor=black)
+![Statut](https://img.shields.io/badge/statut-en%20cours%20de%20d%C3%A9veloppement-orange)
 
 Dashboard analytique end‑to‑end simulant le centre de pilotage d'une opération
 **upstream Oil & Gas en Alberta**, à partir de **données réelles et publiques**
 (AER / Petrinex) enrichies de modules financiers et ESG.
+
+> 🚧 **Projet en cours de développement.** Le pipeline complet — ingestion, modèle en
+> étoile, rapport — fonctionne de bout en bout et les chiffres présentés ci-dessous sont
+> ceux du modèle actuel. Le projet continue d'évoluer : certains modules sont encore en
+> cours d'affinage (voir §10) et les chiffres peuvent bouger d'une itération à l'autre.
 
 📊 *Rapport Power BI : à publier (Publish to Web)* · 📚 *[Documentation dbt](docs/dbt/index.html)*
 
@@ -183,46 +189,51 @@ pas — c'est le principal piège de ce modèle, et la raison du grain retenu au
 
 Cinq pages, un slicer région conforme (`dim_region`) partagé, et une RLS à 3 rôles.
 
-### P1 — Executive Summary
+### P1 — Synthèse exécutive / Executive Summary
 
-![P1 — Executive Summary](docs/screenshots/p1_executive.png)
+![P1 — Synthèse exécutive](docs/screenshots/p1_executive.png)
 
-Les quatre KPI de tête — Production BOE, Revenu estimé, OPEX/boe, Intensité carbone —
-au-dessus d'un combiné production / prix WCS et d'un classement des puits par opérateur.
-Slicers : produit, région, opérateur, année.
+Les quatre KPI de tête — production nette, revenu estimé, OPEX par baril, intensité
+carbone — au-dessus d'un combiné production / prix WCS mensuel et d'un classement des
+puits par opérateur. Slicers : opérateur, année, région, type de produit.
 
-### P2 — Production Operations
+### P2 — Production & Puits / Production & Wells
 
-![P2 — Production Operations](docs/screenshots/p2_production.png)
+![P2 — Production & Puits](docs/screenshots/p2_production.png)
 
 Carte ArcGIS des puits géolocalisés (lat/lon reconstruites depuis le DLS, cf. §9),
-compteurs de puits ACTIVE / ABANDONED / producteurs, et production mensuelle avec sa
-moyenne mobile 3 mois. Slicers : opérateur, statut, puits.
+compteurs de puits producteurs / actifs / abandonnés, production mensuelle avec sa
+moyenne mobile 3 mois, et le détail par UWI. Slicers : période, UWI, opérateur, statut.
 
-### P3 — Cost & Financial
+> Cette capture est filtrée sur **2025** (slicer Période) : les totaux affichés portent
+> sur l'année, pas sur les 24 mois. Les quatre autres pages sont non filtrées.
 
-![P3 — Cost & Financial](docs/screenshots/p3_costs.png)
+### P3 — Coûts & Rentabilité / Costs & Profitability
 
-OPEX total et OPEX/boe, revenu, marge opératoire, et un waterfall de l'OPEX par région.
+![P3 — Coûts & Rentabilité](docs/screenshots/p3_costs.png)
 
-### P4 — ESG & Carbon
+Revenu, OPEX total, OPEX par baril et marge opératoire, au-dessus d'un waterfall de
+l'OPEX par région. L'OPEX/boe se tient autour de 17,4–17,6 $ dans les cinq régions :
+c'est le résultat attendu d'une simulation à taux constant, et l'indicateur qu'aucun
+biais d'unité ne subsiste entre le numérateur et le dénominateur (cf. §4).
 
-![P4 — ESG & Carbon](docs/screenshots/p4_esg.png)
+### P4 — Performance ESG / ESG Performance
+
+![P4 — Performance ESG](docs/screenshots/p4_esg.png)
 
 CO₂ Scope 1 et CO₂eq (CH₄ × 28, GWP100 AR6), intensité carbone, et une jauge situant
-l'intensité face à la cible Alberta 2030 de 0,040 tCO₂/boe.
+l'intensité face à la cible Alberta 2030 de 0,040 tCO₂/boe — soit un écart de +37,5 %.
 
-### P5 — Production Forecast
+### P5 — Prévision & Tendances / Forecast & Trends
 
-![P5 — Production Forecast](docs/screenshots/p5_forecast.png)
+![P5 — Prévision & Tendances](docs/screenshots/p5_forecast.png)
 
 Prévision native Power BI à 6 mois (intervalle de confiance 95 %) sur la production
-mensuelle, encadrée par la tendance YoY, la variabilité (coefficient de variation),
-la production du dernier mois et le run-rate annualisé.
+mensuelle, encadrée par la production du dernier mois, le run-rate annualisé, la
+tendance YoY et la variabilité (coefficient de variation).
 
-> **Captures à régénérer** — les cinq PNG attendus aux chemins ci-dessus ne sont pas
-> versionnés. Voir [`docs/screenshots/README.md`](docs/screenshots/README.md) pour la
-> procédure d'export.
+> Captures exportées depuis Power BI Desktop en PDF puis converties en PNG (1 660 px).
+> Procédure et conventions de nommage : [`docs/screenshots/README.md`](docs/screenshots/README.md).
 
 ---
 
@@ -300,6 +311,33 @@ adapter après un clone.
 - **CAPEX indicatif** : simulé en log-normale, il sert à illustrer la structure de coûts
   et n'est **pas calé** sur les coûts de forage réels albertains — à ne pas citer comme
   un ordre de grandeur.
+
+---
+
+## 10. État d'avancement
+
+Le pipeline tourne de bout en bout et le rapport est exploitable. Ce qui reste ouvert :
+
+**En cours d'affinage**
+
+- **CAPEX** — simulé en log-normale, l'ordre de grandeur (~33 k$/puits) est loin des
+  coûts de forage albertains réels (2–8 M$). À recalibrer, puis à exposer sur la page
+  Coûts, qui n'affiche aujourd'hui que de l'OPEX.
+- **Garde-fous dbt** — ajouter des tests de cohérence sur les ratios (OPEX/boe dans la
+  bande 8–30, intensité carbone autour de 0,055) et sur l'alignement des périmètres
+  entre coûts, émissions et production. Deux régressions passées seraient passées au
+  travers des tests actuels, qui ne vérifient que structure et intégrité référentielle.
+- **Fraîcheur des données** — le jeu courant s'arrête à avril 2026 ; le rafraîchissement
+  n'est pas encore automatisé (`airflow_dags/` est un emplacement réservé, pas un DAG).
+
+**Limites connues**
+
+- Les slicers UWI des pages Production et Prévision exposent ~598 k valeurs : peu
+  maniable, à remplacer par une recherche ou un filtre hiérarchique.
+- 1 test dbt en avertissement (24 lignes) : 1 UWI producteur absent de `dim_puits` après
+  déduplication insensible à la casse. Sans effet côté Power BI.
+- Le rapport n'est pas encore publié (Publish to Web) : les captures du §7 sont la seule
+  restitution disponible en ligne.
 
 ---
 

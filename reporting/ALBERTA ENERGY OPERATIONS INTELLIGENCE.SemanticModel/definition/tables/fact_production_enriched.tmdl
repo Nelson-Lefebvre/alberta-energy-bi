@@ -128,6 +128,26 @@ table fact_production_enriched
 
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
+	column opex_cad
+		dataType: double
+		lineageTag: accf7811-9bb6-4f09-a0a0-fe127b918321
+		summarizeBy: sum
+		sourceColumn: opex_cad
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column co2_tonnes
+		dataType: double
+		lineageTag: b8af7fb4-d76f-4a5c-bf68-343af6579049
+		summarizeBy: sum
+		sourceColumn: co2_tonnes
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
 	partition fact_production_enriched = m
 		mode: import
 		source =

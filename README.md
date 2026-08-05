@@ -9,7 +9,6 @@ Dashboard analytique end‑to‑end simulant le centre de pilotage d'une opérat
 **upstream Oil & Gas en Alberta**, à partir de **données réelles et publiques**
 (AER / Petrinex) enrichies de modules financiers et ESG.
 
-📊 *Rapport Power BI : à publier (Publish to Web)* · 📚 *[Documentation dbt](docs/dbt/index.html)*
 
 ---
 

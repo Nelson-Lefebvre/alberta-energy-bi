@@ -15,3 +15,7 @@ reporting/*.pbix
 
 # Artefacts locaux Power BI Desktop (cache binaire + settings machine)
 **/.pbi/
+
+# Worktrees git et état local de l'agent — .claude/worktrees/ contient des checkouts
+# complets du dépôt : à ne jamais committer.
+.claude/

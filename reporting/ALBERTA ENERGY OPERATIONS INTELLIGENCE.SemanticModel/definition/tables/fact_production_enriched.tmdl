@@ -118,27 +118,6 @@ table fact_production_enriched
 
 		annotation PBI_FormatHint = {"currencyCulture":"en-CA"}
 
-	column opex_cad
-		dataType: double
-		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
-		lineageTag: 7f000006-0000-4000-8000-000000000001
-		summarizeBy: none
-		sourceColumn: opex_cad
-
-		annotation SummarizationSetBy = User
-
-		annotation PBI_FormatHint = {"currencyCulture":"en-CA"}
-
-	column co2_tonnes
-		dataType: double
-		lineageTag: 7f000006-0000-4000-8000-000000000002
-		summarizeBy: none
-		sourceColumn: co2_tonnes
-
-		annotation SummarizationSetBy = User
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
-
 	column production_cumulative_boe
 		dataType: double
 		lineageTag: d1916915-7d84-46ff-bba2-746d0b4a22af
@@ -146,6 +125,26 @@ table fact_production_enriched
 		sourceColumn: production_cumulative_boe
 
 		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column opex_cad
+		dataType: double
+		lineageTag: accf7811-9bb6-4f09-a0a0-fe127b918321
+		summarizeBy: sum
+		sourceColumn: opex_cad
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column co2_tonnes
+		dataType: double
+		lineageTag: b8af7fb4-d76f-4a5c-bf68-343af6579049
+		summarizeBy: sum
+		sourceColumn: co2_tonnes
+
+		annotation SummarizationSetBy = Automatic
 
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 

@@ -3,10 +3,10 @@
   "name": "8a4304c629ae30e45399",
   "position": {
     "x": 953.470349907919,
-    "y": 278.59840392879067,
+    "y": 278.5984039287907,
     "z": 8000,
     "height": 418.40049109883364,
-    "width": 315.81190914671578,
+    "width": 315.8119091467158,
     "tabOrder": 7000
   },
   "visual": {
@@ -95,13 +95,13 @@
               "Column": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "dim_puits"
+                    "Entity": "fact_production_enriched"
                   }
                 },
-                "Property": "operator_name"
+                "Property": "volume_boe"
               }
             },
-            "direction": "Ascending"
+            "direction": "Descending"
           }
         ]
       }

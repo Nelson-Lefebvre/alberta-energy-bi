@@ -11,7 +11,7 @@
       "type": "SharedResources"
     },
     "customTheme": {
-      "name": "Innovate8460023676463216.json",
+      "name": "AlbertaEnergy.json",
       "reportVersionAtImport": {
         "visual": "2.10.0",
         "report": "3.4.0",
@@ -65,8 +65,8 @@
       "type": "RegisteredResources",
       "items": [
         {
-          "name": "Innovate8460023676463216.json",
-          "path": "Innovate8460023676463216.json",
+          "name": "AlbertaEnergy.json",
+          "path": "AlbertaEnergy.json",
           "type": "CustomTheme"
         }
       ]

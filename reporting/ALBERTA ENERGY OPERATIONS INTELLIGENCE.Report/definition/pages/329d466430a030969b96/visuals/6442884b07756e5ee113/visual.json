@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "fact_kpis_mensuels"
+                      "Entity": "dim_region"
                     }
                   },
                   "Property": "region"
                 }
               },
-              "queryRef": "fact_kpis_mensuels.region",
+              "queryRef": "dim_region.region",
               "nativeQueryRef": "region",
               "active": true
             }

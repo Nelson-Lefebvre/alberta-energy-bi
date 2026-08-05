@@ -56,8 +56,11 @@ table fact_kpis_mensuels
 
 		annotation PBI_FormatHint = {"currencyCulture":"af-NA"}
 
-	/// OPEX total (forage + maintenance), grain mois × région.
-	measure 'OPEX Total CAD' = SUM ( fact_kpis_mensuels[opex_total_cad] )
+	/// OPEX total (forage + maintenance). Lu sur fact_production_enriched, au grain
+	/// puits × mois × produit : c'est ce qui permet aux slicers opérateur, statut, uwi
+	/// et type de produit de filtrer l'OPEX. La version agrégée (mois × région) de
+	/// fact_kpis_mensuels ne pouvait être atteinte par aucun de ces filtres.
+	measure 'OPEX Total CAD' = SUM ( fact_production_enriched[opex_cad] )
 		formatString: \$#,0;-\$#,0;\$#,0
 		displayFolder: 2 Finance
 		lineageTag: 7f000002-0000-4000-8000-000000000002
@@ -68,8 +71,10 @@ table fact_kpis_mensuels
 		displayFolder: 2 Finance
 		lineageTag: 7f000002-0000-4000-8000-000000000003
 
-	/// OPEX par baril équivalent pétrole — ratio des sommes (exact).
-	measure 'OPEX par boe' = DIVIDE ( [OPEX Total CAD], SUM ( fact_kpis_mensuels[production_boe] ) )
+	/// OPEX par baril équivalent pétrole — ratio des sommes (exact). Numérateur et
+	/// dénominateur sont désormais pris sur le même fait, donc le ratio reste juste
+	/// sous n'importe quel filtre (opérateur, produit, puits, statut, date, région).
+	measure 'OPEX par boe' = DIVIDE ( [OPEX Total CAD], [Production BOE] )
 		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
 		displayFolder: 2 Finance
 		lineageTag: 7f000002-0000-4000-8000-000000000004
@@ -80,14 +85,18 @@ table fact_kpis_mensuels
 		displayFolder: 2 Finance
 		lineageTag: 7f000002-0000-4000-8000-000000000005
 
-	/// Marge opérationnelle = (Revenu − OPEX) / Revenu. Revenu pris sur fact_kpis_mensuels (même grain région×mois qu'OPEX) pour rester cohérent sous filtre. HORS redevances, transport et G&A (indisponibles par puits) : c'est une marge OPÉRATOIRE (opex-only), PAS une marge nette — ne pas lire comme une rentabilité.
-	measure 'Marge Opérationnelle %' = DIVIDE ( SUM ( fact_kpis_mensuels[revenu_estime_cad] ) - [OPEX Total CAD], SUM ( fact_kpis_mensuels[revenu_estime_cad] ) )
+	/// Marge opérationnelle = (Revenu − OPEX) / Revenu. Revenu et OPEX sont tous deux
+	/// pris sur fact_production_enriched, donc au même grain et cohérents sous n'importe
+	/// quel filtre. HORS redevances, transport et G&A (indisponibles par puits) : c'est
+	/// une marge OPÉRATOIRE (opex-only), PAS une marge nette — ne pas lire comme une rentabilité.
+	measure 'Marge Opérationnelle %' = DIVIDE ( [Revenu Estimé CAD] - [OPEX Total CAD], [Revenu Estimé CAD] )
 		formatString: 0.0%;-0.0%;0.0%
 		displayFolder: 2 Finance
 		lineageTag: 7f000002-0000-4000-8000-000000000006
 
-	/// Émissions CO2 directes Scope 1 (tonnes).
-	measure 'CO2 Scope 1 (t)' = SUM ( fact_kpis_mensuels[co2_tonnes] )
+	/// Émissions CO2 directes Scope 1 (tonnes). Lu sur fact_production_enriched pour la
+	/// même raison que l'OPEX : rendre la mesure filtrable par opérateur, puits et produit.
+	measure 'CO2 Scope 1 (t)' = SUM ( fact_production_enriched[co2_tonnes] )
 		formatString: #,0
 		displayFolder: 3 ESG
 		lineageTag: 7f000003-0000-4000-8000-000000000001
@@ -98,8 +107,9 @@ table fact_kpis_mensuels
 		displayFolder: 3 ESG
 		lineageTag: 7f000003-0000-4000-8000-000000000002
 
-	/// Intensité carbone = CO2 / production (ratio des sommes, exact).
-	measure 'Intensité carbone' = DIVIDE ( [CO2 Scope 1 (t)], SUM ( fact_kpis_mensuels[production_boe] ) )
+	/// Intensité carbone = CO2 / production (ratio des sommes, exact). Même fait au
+	/// numérateur et au dénominateur : le ratio reste juste sous n'importe quel filtre.
+	measure 'Intensité carbone' = DIVIDE ( [CO2 Scope 1 (t)], [Production BOE] )
 		formatString: 0.000
 		displayFolder: 3 ESG
 		lineageTag: 7f000003-0000-4000-8000-000000000003

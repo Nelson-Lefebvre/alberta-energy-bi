@@ -6,6 +6,15 @@ Sortie : data/processed/fact_emissions.parquet
 Facteurs (source : Inventaire National des GES Canada, NIR 2024).
 Calcule CO2, CH4 et CO2eq par puits et par mois à partir des volumes BOE réels
 de petrinex24, avec une variance inter-puits de +/-10 %.
+
+Les volumes proviennent du périmètre canonique (production_universe), donc du
+MÊME univers que le mart : PROD, hors WATER, gaz remis à l'échelle. Le facteur
+NIR est une intensité « t CO2 par boe produit » (approche descendante), donc son
+assiette doit être la production commercialisée — la même qui sert de
+dénominateur à l'intensité carbone affichée. Auparavant les émissions étaient
+générées sur TOUTES les lignes (FUEL, VENT, SHUTIN, WATER inclus) : 11 943 puits
+portaient 16,1 Mt de CO2 sans aucune production au dénominateur, ce qui poussait
+l'intensité globale à 0,0597 au lieu de 0,0551 tCO2/boe.
 """
 
 from __future__ import annotations
@@ -15,6 +24,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from production_universe import charger_volumes_mensuels
 
 # --------------------------------------------------------------------------- #
 # Chemins ancrés sur la racine du projet
@@ -50,24 +61,8 @@ def main() -> int:
 
     rng = np.random.default_rng(RNG_SEED)
 
-    # --- Volumes BOE mensuels par puits ----------------------------------- #
-    prod = pd.read_parquet(
-        PETRINEX_PARQUET, columns=["uwi", "date", "product_type", "volume_boe"]
-    )
-    prod = prod.dropna(subset=["uwi"])
-    # Correctif unité gaz : Petrinex déclare le gaz en 10³m³ (e3m³), PAS en m³ ; le
-    # volume_boe brut (01_ingest) est sous-estimé d'un facteur 1000 pour le gaz.
-    # Les émissions DOIVENT refléter le gaz (combustion/vent/torche) → on rétablit
-    # l'échelle ici. NB : coûts/revenus restent volontairement liquides-only
-    # (décision produit), donc ce ×1000 n'est appliqué QUE pour l'ESG.
-    is_gas = prod["product_type"].astype(str) == "GAS"
-    prod.loc[is_gas, "volume_boe"] = prod.loc[is_gas, "volume_boe"] * 1000
-    grp = (
-        prod.groupby(["uwi", "date"], observed=True)["volume_boe"]
-        .sum()
-        .reset_index()
-    )
-    grp = grp[grp["volume_boe"] > 0].reset_index(drop=True)
+    # --- Volumes BOE mensuels par puits (périmètre canonique partagé) ------ #
+    grp = charger_volumes_mensuels(PETRINEX_PARQUET)
     print(f"  Couples (puits, mois) avec production > 0 : {len(grp):,}")
 
     df = pd.DataFrame()

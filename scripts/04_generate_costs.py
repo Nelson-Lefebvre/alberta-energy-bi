@@ -14,6 +14,12 @@ Règles (cf. CLAUDE.md §7) :
   - saisonnalité     : OPEX x 1.15 en jan/fev/mars (coûts hivernaux canadiens)
   - incidents        : 5 % des puits/mois -> OPEX x 2.0 (arrêt non planifié)
   - devise           : "CAD"
+
+Les volumes proviennent du périmètre canonique (production_universe) : gaz remis
+à l'échelle e3m³ et filtre PROD / hors WATER, identiques au mart. Sans ça, l'OPEX
+était calculé sur des volumes gaz 1000x trop petits alors que le dénominateur du
+ratio OPEX/boe, lui, était corrigé — l'OPEX/boe s'effondrait sur les régions
+gazières (~4 $ contre ~14,5 $ au Nord, un pur artefact d'unité).
 """
 
 from __future__ import annotations
@@ -23,6 +29,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from production_universe import charger_volumes_mensuels
 
 # --------------------------------------------------------------------------- #
 # Chemins ancrés sur la racine du projet
@@ -62,15 +70,8 @@ def main() -> int:
 
     rng = np.random.default_rng(RNG_SEED)
 
-    # --- Volumes BOE mensuels par puits (agrégés depuis petrinex24) -------- #
-    prod = pd.read_parquet(PETRINEX_PARQUET, columns=["uwi", "date", "volume_boe"])
-    prod = prod.dropna(subset=["uwi"])
-    grp = (
-        prod.groupby(["uwi", "date"], observed=True)["volume_boe"]
-        .sum()
-        .reset_index()
-    )
-    grp = grp[grp["volume_boe"] > 0].reset_index(drop=True)
+    # --- Volumes BOE mensuels par puits (périmètre canonique partagé) ------ #
+    grp = charger_volumes_mensuels(PETRINEX_PARQUET)
     print(f"  Couples (puits, mois) avec production > 0 : {len(grp):,}")
 
     df = pd.DataFrame()

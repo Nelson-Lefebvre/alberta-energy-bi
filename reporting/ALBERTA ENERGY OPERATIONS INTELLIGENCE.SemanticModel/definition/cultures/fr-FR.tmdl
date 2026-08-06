@@ -808,7 +808,7 @@ cultureInfo fr-FR
 			          }
 			        },
 			        {
-			          "Opérateur / Operator": {
+			          "Operator / Opérateur": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -3865,7 +3865,7 @@ cultureInfo fr-FR
 			          }
 			        },
 			        {
-			          "Production dernier mois / Last month (boe)": {
+			          "Last month (boe) / Production dernier mois": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -3886,7 +3886,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Prod./puits / Prod./well": {
+			          "Prod./well / Prod./puits": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -3896,7 +3896,7 @@ cultureInfo fr-FR
 			          }
 			        },
 			        {
-			          "Production/puits / Production per well (boe)": {
+			          "Production per well (boe) / Production/puits": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -3917,7 +3917,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Revenu estimé / Est. revenue (CAD)": {
+			          "Est. revenue (CAD) / Revenu estimé": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -3938,7 +3938,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Intensité carbone / Carbon intensity": {
+			          "Carbon intensity / Intensité carbone": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -3959,7 +3959,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "OPEX par baril / OPEX per boe": {
+			          "OPEX per boe / OPEX par baril": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -3969,7 +3969,7 @@ cultureInfo fr-FR
 			          }
 			        },
 			        {
-			          "OPEX/baril / OPEX per boe": {
+			          "OPEX per boe / OPEX/baril": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -3990,7 +3990,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Production nette / Net production (boe)": {
+			          "Net production (boe) / Production nette": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4021,7 +4021,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Puits actifs / Active wells": {
+			          "Active wells / Puits actifs": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4042,7 +4042,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Puits producteurs / Producing wells": {
+			          "Producing wells / Puits producteurs": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4063,7 +4063,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Puits abandonnés / Abandoned wells": {
+			          "Abandoned wells / Puits abandonnés": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4084,7 +4084,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Marge opérationnelle, hors redevances / Operating margin, excl. royalties": {
+			          "Operating margin, excl. royalties / Marge opérationnelle, hors redevances": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4105,7 +4105,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "OPEX total / Total OPEX (CAD)": {
+			          "Total OPEX (CAD) / OPEX total": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4126,7 +4126,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Écart cible 2030 / Gap to 2030 target": {
+			          "Gap to 2030 target / Écart cible 2030": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4189,7 +4189,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Tendance YoY / YoY trend": {
+			          "YoY trend / Tendance YoY": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4210,7 +4210,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Variabilité CV / Variability CV": {
+			          "Variability CV / Variabilité CV": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4231,7 +4231,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Run-rate annualisé / Annualized run-rate (boe)": {
+			          "Annualized run-rate (boe) / Run-rate annualisé": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4252,7 +4252,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Moy. mobile 3 mois (boe) / 3-mo MA": {
+			          "3-mo MA (boe) / Moy. mobile 3 mois": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",

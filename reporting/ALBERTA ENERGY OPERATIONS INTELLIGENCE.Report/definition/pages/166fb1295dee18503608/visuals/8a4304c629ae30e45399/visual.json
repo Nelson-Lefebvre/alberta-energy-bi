@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "8a4304c629ae30e45399",
   "position": {
-    "x": 952.7759751467034,
-    "y": 278.3569209527097,
+    "x": 952.77597514670344,
+    "y": 278.35692095270969,
     "z": 8000,
-    "height": 418.3306869175008,
-    "width": 303.8066965826717,
+    "height": 418.33068691750083,
+    "width": 303.80669658267169,
     "tabOrder": 7000
   },
   "visual": {
@@ -52,18 +52,23 @@
             },
             {
               "field": {
-                "Measure": {
+                "Aggregation": {
                   "Expression": {
-                    "SourceRef": {
-                      "Entity": "fact_kpis_mensuels"
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_puits"
+                        }
+                      },
+                      "Property": "uwi"
                     }
                   },
-                  "Property": "Nb puits producteurs"
+                  "Function": 5
                 }
               },
-              "queryRef": "fact_kpis_mensuels.Nb puits producteurs",
-              "nativeQueryRef": "Nb puits producteurs",
-              "displayName": "Producing wells / Puits producteurs"
+              "queryRef": "dim_puits.uwi",
+              "nativeQueryRef": "Nombre de puits",
+              "displayName": "Wells / Puits"
             },
             {
               "field": {

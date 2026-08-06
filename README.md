@@ -1,8 +1,9 @@
 # Alberta Energy Operations Intelligence
 
-**End-to-end analytics on the Alberta oil & gas basin** — from raw regulatory filings to
-an executive report. 7.2M Petrinex rows, 598,396 wells from the AER register, a star
-schema in DuckDB, and a five-page Power BI report.
+I wanted to see how far I could get using only what Alberta publishes: the monthly
+production filings every operator has to submit to Petrinex, and the provincial well
+register. The result is a Power BI report, but most of the work sits upstream of it.
+7.2M rows of production, 598,396 wells, a star schema in DuckDB, five report pages.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![dbt](https://img.shields.io/badge/dbt-1.11-FF694B?logo=dbt&logoColor=white)
@@ -15,43 +16,50 @@ schema in DuckDB, and a five-page Power BI report.
 
 | | |
 |---|---|
-| **Period** | 24 months · May 2024 → April 2026 |
-| **Production** | 3.54 Bn boe · 4.85M boe/day |
-| **Wells** | 598,396 on the register · 149,340 producing |
-| **Operators** | 3,015 |
-| **Estimated revenue** | CAD 137.7 Bn · 73.9 $/boe on liquids |
-| **OPEX per barrel** | $17.48 |
-| **Scope 1 CO₂** | 194.6 Mt · 0.0550 tCO₂/boe |
+| Period | 24 months, May 2024 to April 2026 |
+| Production | 3.54 Bn boe, or 4.85M boe/day |
+| Wells | 598,396 on the register, 149,340 producing |
+| Operators | 3,015 |
+| Estimated revenue | CAD 137.7 Bn, 73.9 $/boe on liquids |
+| OPEX per barrel | $17.48 |
+| Scope 1 CO₂ | 194.6 Mt, 0.0550 tCO₂/boe |
 
-> Production, prices and locations are **real**. Costs and emissions are **simulated**
-> from those volumes, with factors anchored to the *AER Annual Report 2023* and the
-> *NIR 2024*. Every trade-off is listed at the bottom of this page.
-
----
-
-## What this project demonstrates
-
-| Skill | Where to see it |
-|---|---|
-| **Raw regulatory ingestion** | ST37 ships as tab-delimited text with no coordinates: parsing, UWI reconstruction, **Dominion Land Survey → latitude/longitude conversion** |
-| **Dimensional modelling** | Star schema, 3 facts and 3 dimensions, a conformed `dim_region`, grain stated explicitly per table |
-| **Data quality** | 43 dbt tests, four of them **plausibility** tests written after two real regressions |
-| **Analytics engineering** | dbt Core on DuckDB, staging → marts, generated lineage |
-| **BI and DAX** | 27 measures, ratios kept at one grain, 3-role RLS, a **PBIP** project versioned as TMDL/JSON — reviewable in a pull request, not an opaque binary |
-| **Oil & gas domain** | BOE, WCS, DLS, UWI, Scope 1, GWP100, AER well statuses |
-| **Analytical debugging** | see below — the most interesting part |
+Production volumes, prices and well locations are real. Costs and emissions are
+simulated from those volumes using factors from the AER Annual Report 2023 and the
+NIR 2024. Everything I had to assume is listed near the bottom.
 
 ---
 
-## Two bugs, and why they are the best part
+## What's actually in here
 
-The pipeline produced believable numbers and 39 dbt tests were green. Two of those
-numbers were wrong anyway.
+The ingestion is the part I'd point at first. ST37, the well register, ships as
+tab-delimited text with no coordinates and no operator names. So there's UWI
+reconstruction, a Dominion Land Survey to lat/lon conversion, and joins back to the
+Petrinex reference files to recover names. That gets 99.0% coverage against the
+production data.
 
-### 1. A regional spread that did not exist
+Then a star schema in dbt on DuckDB: three facts, three dimensions, one conformed
+region dimension, with the grain written down for each table because I got burned by
+not doing that. 43 tests, four of which check whether the numbers are plausible rather
+than whether the tables are well formed. More on those below.
 
-OPEX per barrel ranged from $4.03 to $14.52 depending on the region. Tempting to read
-as a difference in cost structure. In fact:
+On the reporting side, 27 DAX measures, row-level security across three roles, and the
+whole thing saved as a PBIP project rather than a .pbix. That last choice matters more
+than it sounds: the model is TMDL and the visuals are JSON, so a reviewer can read a
+diff instead of opening Power BI and clicking around.
+
+---
+
+## The two bugs I'd talk about in an interview
+
+The pipeline produced numbers that looked fine, and 39 dbt tests were green. Two of
+those numbers were wrong.
+
+### A regional spread that wasn't real
+
+OPEX per barrel ranged from $4.03 to $14.52 depending on the region. I spent a while
+trying to explain that as a difference in cost structure, which in hindsight was the
+mistake. Then I lined it up against gas share:
 
 | Region | Gas share | OPEX/boe |
 |---|---|---|
@@ -59,85 +67,85 @@ as a difference in cost structure. In fact:
 | Peace River | 76.7 % | $4.08 |
 | Central | 76.9 % | $4.03 |
 
-The ratio was a **perfect inverse function of gas share** — the signature of a unit
-problem, not a business signal. Petrinex reports gas in 10³m³, not m³. The rescaling
-was applied in the production branch of the pipeline but not in the cost branch, so
-numerator and denominator were not speaking the same unit.
+An almost perfect inverse relationship. Real cost differences don't behave like that.
+Unit errors do.
 
-After the fix, OPEX/boe sits between **$17.38 and $17.61 across all five regions** — the
-spread was gone entirely.
+Petrinex reports gas in 10³m³, not m³. The rescaling was there in the production branch
+of the pipeline and missing from the cost branch, so the numerator and the denominator
+of the ratio weren't in the same unit. After fixing it, OPEX/boe sits between $17.38 and
+$17.61 across all five regions and the spread is gone.
 
-### 2. A denominator that did not cover its numerator
+### A denominator that didn't cover its numerator
 
-Emissions were generated for every Petrinex row, commercialised production or not.
-Production excluded fuel gas, flared and vented volumes, and shut-in wells. The result:
-**11,943 wells carried 16.1 Mt of CO₂ with no production underneath them**, inflating
-carbon intensity from 0.0551 to 0.0597.
+The emissions script generated a row for every Petrinex record. The production mart
+excludes fuel gas, flared and vented volumes, and shut-in wells. Those two scopes were
+never reconciled, so 11,943 wells carried 16.1 Mt of CO₂ with nothing underneath them.
+Carbon intensity read 0.0597 instead of 0.0551.
 
-### The fix, and the safety net
+### Same root cause, and what I did about it
 
-One cause in both cases: a scope rule applied in one branch of the pipeline but not its
-siblings. The definition now lives in a single place
-(`scripts/production_universe.py`), imported by both generators and aligned with the
-dbt mart.
+Both bugs were a scope rule applied in one branch of the pipeline and not its siblings.
+The definition now lives in one module, `scripts/production_universe.py`, imported by
+both generators and matched to the dbt mart.
 
-Then four plausibility tests, because structural tests could not see any of it — the
-tables were valid, the keys present, referential integrity intact:
+Then four plausibility tests, because nothing structural could have caught either bug.
+The tables were valid, the keys were there, referential integrity was intact:
 
-| Test | What it locks down |
+| Test | What it checks |
 |---|---|
 | `assert_univers_partages` | costs, emissions and production cover the same (well, month) set |
-| `assert_facteur_conversion_boe` | 6.290 boe/m³ for liquids · 5.885 boe/10³m³ for gas |
-| `assert_opex_par_boe_plausible` | OPEX/boe within 8–30, **per region** |
-| `assert_intensite_carbone_plausible` | intensity within 0.050–0.060, **per region** |
+| `assert_facteur_conversion_boe` | 6.290 boe/m³ for liquids, 5.885 boe/10³m³ for gas |
+| `assert_opex_par_boe_plausible` | OPEX/boe stays within 8 to 30, per region |
+| `assert_intensite_carbone_plausible` | intensity stays within 0.050 to 0.060, per region |
 
-Grain is the whole point of the last two. During the bug the **global** OPEX/boe was
-$9.21 — inside the band. An aggregate check would have passed it. Only the per-region
-split exposed the defect.
+The per-region part of the last two is the whole point. While the bug was live, the
+global OPEX/boe was $9.21, comfortably inside the band. A test on the total would have
+passed and told me nothing. Only the regional split showed the problem.
 
-Replayed against the pre-fix database, these tests return **3 regions out of band** on
-OPEX, **1 on intensity**, and **413,760 orphaned (well, month) pairs** on scope. They
-would have failed the build.
+I checked the tests actually work by pointing them at a copy of the database from before
+the fix. They return 3 regions out of band on OPEX, 1 on intensity, and 413,760 orphaned
+(well, month) pairs. That build would have failed.
 
 ---
 
 ## The report
 
-Five pages, one shared conformed region slicer, 3-role row-level security.
+Five pages sharing one region slicer, with row-level security on three roles.
 
 ### Production & Wells
 
 ![Production and wells](docs/screenshots/p2_production.png)
 
-ArcGIS map of geolocated wells — coordinates rebuilt from the DLS — counters for
-producing, active and abandoned wells, monthly production against its 3-month moving
-average, and per-UWI detail.
+Map of geolocated wells with coordinates rebuilt from the DLS, counters for producing,
+active and abandoned wells, monthly production against a 3-month moving average, and
+per-UWI detail underneath.
 
-> This capture is filtered to **2025**, so totals cover the year rather than the full
-> 24 months. The map tiles failed to load at export time.
+Two caveats on this capture: it's filtered to 2025, so the totals cover the year rather
+than the full 24 months, and the ArcGIS basemap didn't load when I exported it.
 
 ### Costs & Profitability
 
 ![Costs and profitability](docs/screenshots/p3_costs.png)
 
-Revenue, total and per-barrel OPEX, operating margin, and an OPEX waterfall by region.
-OPEX/boe sitting flat near $17.5 across all five regions is the visual check that no
-unit bias remains between numerator and denominator.
+Revenue, OPEX in total and per barrel, operating margin, and an OPEX waterfall by
+region. The flat $17.5 across all five regions is the check I now look at first, since
+that's exactly where the unit bug showed up.
 
 ### ESG Performance
 
 ![ESG performance](docs/screenshots/p4_esg.png)
 
-Scope 1 CO₂ and CO₂e (CH₄ × 28, GWP100 AR6), carbon intensity, and a gauge against the
-Alberta 2030 target of 0.040 tCO₂/boe — a gap of +37.5 %. The conversion can be checked
-by hand: 194.6 + 2.21 × 28 = 256.5 Mt.
+Scope 1 CO₂ and CO₂e using CH₄ × 28 (GWP100, AR6), carbon intensity, and a gauge
+against Alberta's 2030 target of 0.040 tCO₂/boe, which the current figure misses by
+37.5%. The conversion is deliberately checkable by hand: 194.6 + 2.21 × 28 = 256.5 Mt.
 
 ### Forecast & Trends
 
 ![Forecast and trends](docs/screenshots/p5_forecast.png)
 
-Native Power BI forecast, 6 months ahead at 95 % confidence, framed by the year-over-year
-trend (+3.4 %) and the coefficient of variation (5.4 %).
+Power BI's built-in forecast, six months out at 95% confidence, with year-over-year
+trend at +3.4% and a coefficient of variation of 5.4%. Nothing clever here, but the
+input series is clean enough that the native forecast is defensible.
 
 ---
 
@@ -152,7 +160,7 @@ trend (+3.4 %) and the coefficient of variation (5.4 %).
         │             │                │               │
         ▼             ▼                ▼               ▼
  ┌──────────────────────────────────────────────────────────────┐
- │  Python (scripts 01–05) → Parquet in data/processed/          │
+ │  Python (scripts 01 to 05) → Parquet in data/processed/       │
  │  pandas · numpy · requests · pyarrow                          │
  └───────────────────────────┬──────────────────────────────────┘
                              ▼
@@ -162,7 +170,7 @@ trend (+3.4 %) and the coefficient of variation (5.4 %).
  └───────────────────────────┬──────────────────────────────────┘
                              ▼
  ┌──────────────────────────────────────────────────────────────┐
- │  Power BI Desktop — PBIP  (star · 27 DAX measures · RLS)      │
+ │  Power BI Desktop, PBIP  (star, 27 DAX measures, RLS)         │
  └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -170,30 +178,30 @@ trend (+3.4 %) and the coefficient of variation (5.4 %).
 
 | Source | Content | Format |
 |---|---|---|
-| **Petrinex – Conventional Volumetrics** | Monthly AB production (24 months) | ZIP→CSV |
-| **AER ST37 – List of Wells** | Well register (DLS, status, licence) | ZIP→TXT |
-| **Petrinex – Business Associate / Field Codes** | Operator and field reference data | CSV |
-| **Yahoo Finance – WTI (CL=F)** | Monthly WTI price, basis for WCS | JSON |
-| **Bank of Canada – FXUSDCAD** | Monthly USD/CAD exchange rate | JSON |
+| Petrinex Conventional Volumetrics | Monthly AB production, 24 months | ZIP→CSV |
+| AER ST37 List of Wells | Well register: DLS, status, licence | ZIP→TXT |
+| Petrinex Business Associate / Field Codes | Operator and field reference data | CSV |
+| Yahoo Finance WTI (CL=F) | Monthly WTI price, basis for WCS | JSON |
+| Bank of Canada FXUSDCAD | Monthly USD/CAD rate | JSON |
 
-Full URLs in [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md).
+Full URLs are in [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md).
 
 ### Python pipeline
 
-| Script | Output | Role |
+| Script | Output | What it does |
 |---|---|---|
 | `01_ingest_petrinex.py` | `petrinex24.parquet` | Parallel download, nested unzip, cleaning, BOE conversion |
-| `02_ingest_aer_wells.py` | `dim_puits.parquet` | ST37 parsing, UWI reconstruction, **DLS→lat/lon**, reference joins |
-| `03_ingest_prices.py` | `dim_prix.parquet` | WTI + USD/CAD → monthly WCS in CAD |
-| `04_generate_costs.py` | `fact_couts.parquet` | Simulated OPEX/CAPEX (winter seasonality, incidents) |
-| `05_generate_emissions.py` | `fact_emissions.parquet` | Scope 1 CO₂/CH₄/CO₂e (NIR 2024 factors) |
+| `02_ingest_aer_wells.py` | `dim_puits.parquet` | ST37 parsing, UWI reconstruction, DLS to lat/lon, reference joins |
+| `03_ingest_prices.py` | `dim_prix.parquet` | WTI plus USD/CAD into a monthly WCS in CAD |
+| `04_generate_costs.py` | `fact_couts.parquet` | Simulated OPEX and CAPEX, winter seasonality, incidents |
+| `05_generate_emissions.py` | `fact_emissions.parquet` | Scope 1 CO₂, CH₄ and CO₂e using NIR 2024 factors |
 
-`production_universe.py` holds the **canonical scope** shared by 04 and 05 — the gas
-unit correction and the commercialised-production filter, identical to the dbt mart.
-That module is the fix for bug #1.
+`production_universe.py` holds the scope shared by scripts 04 and 05: the gas unit
+correction and the commercialised-production filter, matched to the dbt mart. That
+module exists because of the first bug above.
 
-**ST37 ↔ Petrinex UWI coverage: 99.0 %** (1,426 producing wells outside the register,
-out of 149,340).
+ST37 to Petrinex UWI coverage comes out at 99.0%, with 1,426 producing wells falling
+outside the register.
 
 ---
 
@@ -201,63 +209,63 @@ out of 149,340).
 
 ![Star schema](docs/diagramme_bdd.png)
 
-> The diagram is two changes behind: `dim_region` is missing, and
-> `fact_production_enriched` now also carries `opex_cad` and `co2_tonnes`. Grains, keys
-> and cardinalities are still accurate.
+The diagram is two changes behind: `dim_region` isn't on it, and
+`fact_production_enriched` now also carries `opex_cad` and `co2_tonnes`. Grains, keys
+and cardinalities are still right.
 
-- **Staging** (views): `stg_petrinex_production`, `stg_aer_wells`, `stg_eia_prices`,
-  `stg_costs`, `stg_emissions`
-- **Marts** (tables): `dim_date`, `dim_puits`, `dim_region`,
-  `fact_production_enriched`, `fact_kpis_mensuels`, `fact_emissions_scope`
+Staging views: `stg_petrinex_production`, `stg_aer_wells`, `stg_eia_prices`,
+`stg_costs`, `stg_emissions`. Marts: `dim_date`, `dim_puits`, `dim_region`,
+`fact_production_enriched`, `fact_kpis_mensuels`, `fact_emissions_scope`.
 
-**`dim_region` is a conformed dimension.** `dim_puits` and `fact_kpis_mensuels` are not
-related to each other, so a slicer placed on a fact's own column would filter that fact
-alone. Pages filter `dim_region[region]`, which reaches both branches.
+`dim_region` is conformed, and it has to be. `dim_puits` and `fact_kpis_mensuels` aren't
+related to each other, so a slicer sitting on one fact's own region column filters that
+fact and nothing else. The pages filter `dim_region[region]`, which reaches both sides.
 
-**`fact_production_enriched`** (4,342,506 rows, grain well × month × product) carries
+`fact_production_enriched` is 4,342,506 rows at well by month by product, and carries
 volume, revenue, OPEX and CO₂. The last two are allocated pro rata by volume from the
-(well, month) simulation — an **exact** allocation, since the scripts compute
-`opex = rate × volume` with the rate constant over a pair. That fine grain is what makes
-OPEX and intensity filterable by operator, status, well and product.
+(well, month) simulation. The allocation is exact rather than approximate, since the
+scripts compute `opex = rate × volume` with the rate held constant over a pair. Keeping
+that grain is what lets OPEX and intensity respond to an operator or product filter,
+which they didn't before I moved them.
 
-`dbt build` → **42 PASS · 1 WARN · 0 ERROR** across 43 nodes. The warning is a
-relationship test returning 24 rows: one producing UWI absent from `dim_puits` after
-case-insensitive deduplication, with no effect in Power BI, which matches keys the same
-way. Full lineage: [`docs/dbt/index.html`](docs/dbt/index.html).
+`dbt build` gives 42 pass, 1 warn, 0 error across 43 nodes. The warning is a
+relationship test returning 24 rows: one producing UWI that disappears from `dim_puits`
+after case-insensitive deduplication. Power BI matches keys the same way, so it doesn't
+surface. Lineage is at [`docs/dbt/index.html`](docs/dbt/index.html).
 
 ---
 
 ## DAX measures
 
 ```dax
-OPEX par boe =                          -- the headline O&G metric
+OPEX par boe =                          -- the metric people actually ask about
 DIVIDE ( [OPEX Total CAD], [Production BOE] )
 
 OPEX Total CAD =                        -- grain: well × month × product
 SUM ( fact_production_enriched[opex_cad] )
 
-Intensité carbone =                     -- ESG: tCO₂ / boe
+Intensité carbone =                     -- tCO₂ per boe
 DIVIDE ( [CO2 Scope 1 (t)], [Production BOE] )
 
-Marge Opérationnelle % =                -- opex-only, NOT a net margin
+Marge Opérationnelle % =                -- opex only, not a net margin
 DIVIDE ( [Revenu Estimé CAD] - [OPEX Total CAD], [Revenu Estimé CAD] )
 
-Tendance YoY % =                        -- last 12 months vs the 12 before
+Tendance YoY % =                        -- last 12 months against the 12 before
 DIVIDE ( [Production 12 derniers mois] - [Production 12 mois précédents],
          [Production 12 mois précédents] )
 ```
 
-**27 measures** across 5 display folders (Production, Finance, ESG, Time Intelligence,
-Wells). **3-role RLS** (Nord / Sud / Admin) on `dim_puits`, `fact_kpis_mensuels`,
-`fact_emissions_scope` and `dim_region`.
+27 measures across five display folders, and RLS on three roles (Nord, Sud, Admin)
+applied to `dim_puits`, `fact_kpis_mensuels`, `fact_emissions_scope` and `dim_region`.
 
-Every ratio takes numerator and denominator **from the same fact**. A ratio whose two
-terms live at different grains freezes silently as soon as someone applies a slicer that
-only one of them can reach — the main trap in this model.
+Every ratio takes its numerator and denominator from the same fact. A ratio whose two
+terms sit at different grains will freeze silently the moment someone applies a slicer
+only one side can see, and it won't look broken. That's the trap in this model and it's
+the reason the OPEX and CO₂ columns moved down to well grain.
 
 ---
 
-## Reproducing
+## Running it
 
 ```powershell
 # 1. Environment
@@ -268,14 +276,14 @@ pip install -r requirements.txt
 # 2. Manual raw files in data/raw/ :
 #    ST37.zip, ba_codes.csv, field_codes.csv
 
-# 3. Python pipeline (order matters)
+# 3. Python pipeline, in this order
 python scripts\01_ingest_petrinex.py
 python scripts\02_ingest_aer_wells.py
 python scripts\03_ingest_prices.py
 python scripts\04_generate_costs.py
 python scripts\05_generate_emissions.py
 
-# 4. dbt transformation
+# 4. dbt
 cd dbt_project\energy_analytics
 dbt build --profiles-dir .
 dbt docs generate --profiles-dir .
@@ -283,7 +291,7 @@ dbt docs generate --profiles-dir .
 # 5. Open the reporting\ folder in Power BI Desktop, then Refresh
 ```
 
-**`profiles.yml` is not versioned** (it holds a machine path). Create one in
+`profiles.yml` isn't versioned because it holds a machine path. Create one in
 `dbt_project/energy_analytics/`:
 
 ```yaml
@@ -296,53 +304,60 @@ energy_analytics:
       threads: 4
 ```
 
-Two things block a fresh clone: staging views read the Parquet files by **relative
-path**, so dbt must be run from `dbt_project/energy_analytics`; and the database path is
-**hard-coded** in the semantic model's M partitions, so it needs editing.
-
-The report is a **PBIP** project rather than a `.pbix`: the model is TMDL and the visuals
-are JSON, so both are readable and diffable in code review.
+Two things will bite you on a fresh clone. The staging views read the Parquet files by
+relative path, so dbt has to run from `dbt_project/energy_analytics`. And the database
+path is hard-coded in the semantic model's M partitions, so you'll need to edit it.
 
 ---
 
-## Assumed trade-offs
+## What I had to assume
 
-- **Basin view, not operator view.** The data covers all 3,015 operators in the province.
-  This is basin analysis of the kind a regulator or a market analyst produces, not the
-  control centre of a single company.
-- **Gas is not monetised.** WCS is a heavy-oil benchmark; with no AECO price available,
-  gas counts toward volumes and emissions but not revenue. Valuing it at the oil price
-  would have overstated it four- to fivefold. Margin is therefore computed on
-  liquids-only revenue, which makes it **conservative**.
-- **Production scope.** Only commercialised production is kept (`PROD`, excluding
-  `WATER`): fuel gas, vented and flared volumes, and shut-in wells are excluded. Costs,
-  emissions and production share that scope — a model constraint, not a detail.
-- **1,426 producing wells outside the AER register** (~1 % of production): present in
-  Petrinex, absent from the ST37 extract. Assigned to an explicit bucket rather than
-  hidden, so totals stay correct and the gap stays visible.
-- **ST37** ships as tab-delimited text with no coordinates or names → coordinates
-  converted from the DLS, names restored through the Petrinex reference files.
-- **Prices**: EIA and Alpha Vantage require API keys → replaced by Yahoo Finance and the
-  Bank of Canada (keyless), with WCS = WTI − $17.50.
-- **CAPEX is indicative**: simulated log-normally, it illustrates cost structure and is
-  **not calibrated** against real Alberta drilling costs.
+This is a basin view, not an operator view. The data covers all 3,015 operators in the
+province, which is closer to what a regulator or a market analyst looks at than to a
+single company's control room. Worth being clear about, since the two get read very
+differently.
 
----
+Gas isn't monetised. WCS is a heavy oil benchmark and I had no AECO price, so gas counts
+toward volumes and emissions but contributes nothing to revenue. Pricing it as oil would
+have overstated it by four or five times. Margin therefore sits on liquids-only revenue,
+which makes it conservative rather than optimistic, and I'd rather err that way.
 
-## Roadmap
+Only commercialised production is in scope: `PROD`, excluding `WATER`. Fuel gas, vented
+and flared volumes, and shut-in wells are all out. Costs, emissions and production share
+that definition, which as the bug section explains is not a detail.
 
-The pipeline runs end to end and the report is usable. Still open:
+1,426 producing wells sit outside the AER register, roughly 1% of production. They're in
+Petrinex but not in the ST37 extract. I put them in a labelled bucket instead of
+dropping them, so the totals stay right and the gap stays visible.
 
-- **CAPEX** — needs recalibrating (~$33k/well against a real $2–8M), then surfacing on
-  the Costs page, which currently shows OPEX only.
-- **Freshness** — data stops at April 2026; refresh is not automated (`airflow_dags/` is
-  a reserved location, not a DAG).
-- **Inactive well inventory** — 449,057 wells with no production, 66,984 of them
-  abandoned: 75 % of the register. Reclamation liability is a major Alberta topic and the
-  data is already here; the dedicated page is still to be built.
-- **UWI slicers** — ~598k values on two pages, to be replaced with a search control.
-- **Publication** — the report is not yet published to the web.
+ST37 arrives as tab-delimited text with no coordinates and no names, so coordinates come
+from a DLS conversion and names from the Petrinex reference files. EIA and Alpha Vantage
+both want API keys, so prices come from Yahoo Finance and the Bank of Canada instead,
+with WCS set at WTI minus $17.50.
+
+CAPEX is illustrative. It's simulated log-normally to give the cost structure a shape,
+and it is not calibrated against real Alberta drilling costs. Don't quote it.
 
 ---
 
-*Data Analyst portfolio project — Calgary 2026.*
+## Still open
+
+CAPEX needs recalibrating. It currently lands around $33k per well against a real 2 to 8
+million, and it isn't surfaced on the Costs page, which shows OPEX only.
+
+The data stops at April 2026 and refresh isn't automated. `airflow_dags/` is a folder I
+reserved, not a DAG.
+
+The inactive well inventory is the piece I most want to build next. 449,057 wells with
+no production, 66,984 of them abandoned, which is 75% of the register. Reclamation
+liability is a live political and financial issue in Alberta and the data is already
+sitting in the model, so it's the one genuinely non-simulated finding here that I
+haven't used yet.
+
+Two pages still expose UWI slicers with around 598k values, which is unusable and needs
+a search control instead. And the report isn't published to the web yet, so the
+screenshots above are the only way to see it.
+
+---
+
+Data Analyst portfolio project, Calgary 2026.

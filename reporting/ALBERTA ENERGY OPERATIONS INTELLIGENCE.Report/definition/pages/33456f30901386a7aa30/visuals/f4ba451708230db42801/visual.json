@@ -65,7 +65,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Intensité carbone vs cible / Carbon intensity vs target'"
+                  "Value": "'Carbon intensity vs target / Intensité carbone vs cible'"
                 }
               }
             }

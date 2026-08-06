@@ -83,7 +83,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Produit / Product'"
+                  "Value": "'Product / Produit'"
                 }
               }
             }

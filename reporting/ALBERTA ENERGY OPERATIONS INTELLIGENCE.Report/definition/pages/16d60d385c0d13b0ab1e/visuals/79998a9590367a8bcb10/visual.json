@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Nb puits producteurs",
               "nativeQueryRef": "Nb puits producteurs",
-              "displayName": "Puits producteurs / Producing wells"
+              "displayName": "Producing wells / Puits producteurs"
             }
           ]
         }

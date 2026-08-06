@@ -28,7 +28,7 @@
               },
               "queryRef": "dim_puits.operator_name",
               "nativeQueryRef": "Opérateur",
-              "displayName": "Opérateur / Operator"
+              "displayName": "Operator / Opérateur"
             },
             {
               "field": {
@@ -68,7 +68,7 @@
               },
               "queryRef": "dim_puits.uwi",
               "nativeQueryRef": "Nombre de puits",
-              "displayName": "Puits / Wells"
+              "displayName": "Wells / Puits"
             },
             {
               "field": {
@@ -83,7 +83,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Production par puits",
               "nativeQueryRef": "Production par puits",
-              "displayName": "Prod./puits / Prod./well"
+              "displayName": "Prod./well / Prod./puits"
             }
           ]
         }

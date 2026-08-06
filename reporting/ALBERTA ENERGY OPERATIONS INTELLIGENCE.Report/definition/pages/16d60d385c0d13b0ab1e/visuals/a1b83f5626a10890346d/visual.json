@@ -67,7 +67,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Statut / Status'"
+                  "Value": "'Status / Statut'"
                 }
               }
             }

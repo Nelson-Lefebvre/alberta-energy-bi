@@ -6,7 +6,7 @@
     "y": 136,
     "z": 2000,
     "height": 100,
-    "width": 295.85364169830859,
+    "width": 295.8536416983086,
     "tabOrder": 2000
   },
   "visual": {
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Écart cible 2030 %",
               "nativeQueryRef": "Écart cible 2030 %",
-              "displayName": "Écart cible 2030 / Gap to 2030 target"
+              "displayName": "Gap to 2030 target / Écart cible 2030"
             }
           ]
         }

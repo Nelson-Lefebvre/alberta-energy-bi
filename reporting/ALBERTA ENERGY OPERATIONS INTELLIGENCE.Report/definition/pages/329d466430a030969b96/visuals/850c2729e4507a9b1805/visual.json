@@ -2,7 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "850c2729e4507a9b1805",
   "position": {
-    "x": 639.66998158379374,
+    "x": 639.6699815837937,
     "y": 136.78477593615716,
     "z": 1000,
     "height": 100.57704112952732,
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.OPEX par boe",
               "nativeQueryRef": "OPEX par boe",
-              "displayName": "OPEX/baril / OPEX per boe"
+              "displayName": "OPEX per boe / OPEX/baril"
             }
           ]
         }

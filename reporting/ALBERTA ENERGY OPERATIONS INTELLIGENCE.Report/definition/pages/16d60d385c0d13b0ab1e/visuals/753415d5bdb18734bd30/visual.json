@@ -61,7 +61,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Production MM3",
               "nativeQueryRef": "Production MM3",
-              "displayName": "Moy. mobile 3 mois (boe) / 3-mo MA"
+              "displayName": "3-mo MA (boe) / Moy. mobile 3 mois"
             }
           ]
         }
@@ -88,7 +88,7 @@
             "titleText": {
               "expr": {
                 "Literal": {
-                  "Value": "'Mois / Month'"
+                  "Value": "'Month / Mois'"
                 }
               }
             }

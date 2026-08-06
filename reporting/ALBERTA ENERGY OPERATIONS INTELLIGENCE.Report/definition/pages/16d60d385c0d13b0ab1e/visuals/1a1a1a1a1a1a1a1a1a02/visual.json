@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Production & Puits / Production & Wells",
+                    "value": "Production & Wells / Production & Puits",
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontStyle": "italic",

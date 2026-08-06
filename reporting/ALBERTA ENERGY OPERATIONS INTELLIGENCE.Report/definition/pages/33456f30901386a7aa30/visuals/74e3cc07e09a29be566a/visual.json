@@ -78,7 +78,7 @@
             "titleText": {
               "expr": {
                 "Literal": {
-                  "Value": "'Région / Region'"
+                  "Value": "'Region / Région'"
                 }
               }
             }
@@ -127,7 +127,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'CO₂ Scope 1 par région / Scope 1 CO₂ by region'"
+                  "Value": "'Scope 1 CO₂ by region / CO₂ Scope 1 par région'"
                 }
               }
             }

@@ -104,7 +104,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Opérateur / Operator'"
+                  "Value": "'Operator / Opérateur'"
                 }
               }
             }

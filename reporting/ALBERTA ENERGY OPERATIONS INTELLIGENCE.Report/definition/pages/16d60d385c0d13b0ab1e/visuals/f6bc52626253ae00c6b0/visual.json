@@ -91,7 +91,7 @@
             "titleText": {
               "expr": {
                 "Literal": {
-                  "Value": "'Mois / Month'"
+                  "Value": "'Month / Mois'"
                 }
               }
             }
@@ -118,7 +118,7 @@
             "titleText": {
               "expr": {
                 "Literal": {
-                  "Value": "'Revenu estimé (CAD) / Est. revenue (CAD)'"
+                  "Value": "'Est. revenue (CAD) / Revenu estimé (CAD)'"
                 }
               }
             },
@@ -139,7 +139,7 @@
             "secTitleText": {
               "expr": {
                 "Literal": {
-                  "Value": "'Prod. cumulée moy. (boe) / Avg cumul. prod. (boe)'"
+                  "Value": "'Avg cumul. prod. (boe) / Prod. cumulée moy. (boe)'"
                 }
               }
             }

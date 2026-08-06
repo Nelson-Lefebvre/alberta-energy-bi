@@ -2,7 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "f192ca465108c7aa0199",
   "position": {
-    "x": 640.21201626261109,
+    "x": 640.2120162626111,
     "y": 145.55880138533354,
     "z": 8000,
     "height": 115.95362144255384,
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Nb puits ABANDONED",
               "nativeQueryRef": "Nb puits ABANDONED",
-              "displayName": "Puits abandonnés / Abandoned wells"
+              "displayName": "Abandoned wells / Puits abandonnés"
             }
           ]
         }

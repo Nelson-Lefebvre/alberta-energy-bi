@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Intensité carbone",
               "nativeQueryRef": "Intensité carbone",
-              "displayName": "Intensité carbone / Carbon intensity"
+              "displayName": "Carbon intensity / Intensité carbone"
             }
           ]
         }

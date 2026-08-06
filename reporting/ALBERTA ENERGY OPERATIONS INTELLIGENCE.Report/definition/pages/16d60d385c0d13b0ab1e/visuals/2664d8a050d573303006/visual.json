@@ -2,7 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "2664d8a050d573303006",
   "position": {
-    "x": 335.52537268483661,
+    "x": 335.5253726848366,
     "y": 145.55880138533354,
     "z": 11000,
     "height": 115.95362144255384,
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Nb puits ACTIVE",
               "nativeQueryRef": "Nb puits ACTIVE",
-              "displayName": "Puits actifs / Active wells"
+              "displayName": "Active wells / Puits actifs"
             }
           ]
         }

@@ -6,7 +6,7 @@
     "y": 136,
     "z": 2000,
     "height": 100,
-    "width": 295.85364169830859,
+    "width": 295.8536416983086,
     "tabOrder": 2000
   },
   "visual": {
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Tendance YoY %",
               "nativeQueryRef": "Tendance YoY %",
-              "displayName": "Tendance YoY / YoY trend"
+              "displayName": "YoY trend / Tendance YoY"
             }
           ]
         }

@@ -6,7 +6,7 @@
     "y": 136,
     "z": 0,
     "height": 100,
-    "width": 295.85364169830859,
+    "width": 295.8536416983086,
     "tabOrder": 0
   },
   "visual": {
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Production dernier mois",
               "nativeQueryRef": "Production dernier mois",
-              "displayName": "Production dernier mois / Last month (boe)"
+              "displayName": "Last month (boe) / Production dernier mois"
             }
           ]
         }

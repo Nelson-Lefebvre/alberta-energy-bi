@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "d594873706a4a7c0d8e0",
   "position": {
-    "x": 657.77384898710864,
+    "x": 657.7738489871086,
     "y": 151.87133210558625,
     "z": 5000,
     "height": 115.66359729895642,
-    "width": 295.69650092081031,
+    "width": 295.6965009208103,
     "tabOrder": 4000
   },
   "visual": {
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.OPEX par boe",
               "nativeQueryRef": "OPEX par boe",
-              "displayName": "OPEX par baril / OPEX per boe"
+              "displayName": "OPEX per boe / OPEX par baril"
             }
           ]
         }

@@ -6,7 +6,7 @@
     "y": 136,
     "z": 1000,
     "height": 100,
-    "width": 295.85364169830859,
+    "width": 295.8536416983086,
     "tabOrder": 1000
   },
   "visual": {
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Variabilité CV %",
               "nativeQueryRef": "Variabilité CV %",
-              "displayName": "Variabilité CV / Variability CV"
+              "displayName": "Variability CV / Variabilité CV"
             }
           ]
         }

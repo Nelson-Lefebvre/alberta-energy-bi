@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "a3fe1b87114ae6e2e00d",
   "position": {
-    "x": 328.88692449355432,
+    "x": 328.8869244935543,
     "y": 152.87710251688154,
     "z": 6000,
     "height": 115.66359729895642,
-    "width": 295.69650092081031,
+    "width": 295.6965009208103,
     "tabOrder": 5000
   },
   "visual": {
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Revenu Estimé CAD",
               "nativeQueryRef": "Revenu Estimé CAD",
-              "displayName": "Revenu estimé / Est. revenue (CAD)"
+              "displayName": "Est. revenue (CAD) / Revenu estimé"
             }
           ]
         }

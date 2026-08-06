@@ -6,7 +6,7 @@
     "y": 136.78477593615716,
     "z": 3000,
     "height": 100.57704112952732,
-    "width": 295.69650092081031,
+    "width": 295.6965009208103,
     "tabOrder": 3000
   },
   "visual": {
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.OPEX Total CAD",
               "nativeQueryRef": "OPEX Total CAD",
-              "displayName": "OPEX total / Total OPEX (CAD)"
+              "displayName": "Total OPEX (CAD) / OPEX total"
             }
           ]
         }

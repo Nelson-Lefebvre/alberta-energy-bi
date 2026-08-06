@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Prévision & Tendances / Forecast & Trends",
+                    "value": "Forecast & Trends / Prévision & Tendances",
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontStyle": "italic",

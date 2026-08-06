@@ -43,7 +43,7 @@
               },
               "queryRef": "dim_puits.operator_name",
               "nativeQueryRef": "operator_name",
-              "displayName": "Opérateur / Operator"
+              "displayName": "Operator / Opérateur"
             },
             {
               "field": {

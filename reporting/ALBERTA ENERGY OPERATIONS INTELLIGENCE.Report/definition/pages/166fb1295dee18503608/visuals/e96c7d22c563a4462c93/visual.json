@@ -6,7 +6,7 @@
     "y": 152.87710251688154,
     "z": 4000,
     "height": 115.66359729895642,
-    "width": 295.69650092081031,
+    "width": 295.6965009208103,
     "tabOrder": 3000
   },
   "visual": {
@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Production BOE",
               "nativeQueryRef": "Production BOE",
-              "displayName": "Production nette / Net production (boe)"
+              "displayName": "Net production (boe) / Production nette"
             }
           ]
         }

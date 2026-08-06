@@ -28,7 +28,7 @@
               },
               "queryRef": "fact_kpis_mensuels.Production par puits",
               "nativeQueryRef": "Production par puits",
-              "displayName": "Production/puits / Production per well (boe)"
+              "displayName": "Production per well (boe) / Production/puits"
             }
           ]
         }

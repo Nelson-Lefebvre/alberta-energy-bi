@@ -146,7 +146,26 @@ calculent `opex = taux × volume` et `co₂ = facteur × volume` à taux et fact
 sur un couple (puits, mois). C'est ce grain fin qui rend l'OPEX et l'intensité carbone
 filtrables par opérateur, statut, puits et type de produit.
 
-`dbt build` → **38 PASS / 1 WARN / 0 ERROR** sur 39 nœuds (tests `not_null`, `unique`,
+### Tests de plausibilité
+
+Aux tests structurels s'ajoutent quatre tests singuliers (`tests/`) qui vérifient non
+pas la forme des tables mais **la vraisemblance des ratios**. Ils existent parce que
+deux régressions sont passées au travers de 39 tests structurels au vert :
+
+| Test | Ce qu'il verrouille |
+|---|---|
+| `assert_univers_partages` | coûts, émissions et production couvrent le même ensemble (puits, mois) — le test de la cause racine |
+| `assert_facteur_conversion_boe` | 6,290 boe/m³ pour les liquides, 5,885 boe/10³m³ pour le gaz |
+| `assert_opex_par_boe_plausible` | OPEX/boe dans la bande 8–30 **par région** |
+| `assert_intensite_carbone_plausible` | intensité dans 0,050–0,060 **par région** |
+
+Le grain est l'essentiel : lors du bug de juillet 2026 l'OPEX/boe **global** valait
+9,21 $, donc dans la bande — invisible pour un contrôle agrégé. Seule la ventilation
+par région trahissait le défaut (Central à 4,03 $). Rejoués contre la base d'avant
+correctif, ces tests renvoient 3 régions hors bande sur l'OPEX, 1 sur l'intensité et
+413 760 couples orphelins sur les périmètres.
+
+`dbt build` → **42 PASS / 1 WARN / 0 ERROR** sur 43 nœuds (tests `not_null`, `unique`,
 `accepted_values`, `relationships`). Le WARN est un test de relation à 24 lignes : 1 UWI
 producteur absent de `dim_puits` après déduplication insensible à la casse — sans effet
 côté Power BI, qui apparie les clés en insensible à la casse.
@@ -327,10 +346,6 @@ Le pipeline tourne de bout en bout et le rapport est exploitable. Ce qui reste o
 - **CAPEX** — simulé en log-normale, l'ordre de grandeur (~33 k$/puits) est loin des
   coûts de forage albertains réels (2–8 M$). À recalibrer, puis à exposer sur la page
   Coûts, qui n'affiche aujourd'hui que de l'OPEX.
-- **Garde-fous dbt** — ajouter des tests de cohérence sur les ratios (OPEX/boe dans la
-  bande 8–30, intensité carbone autour de 0,055) et sur l'alignement des périmètres
-  entre coûts, émissions et production. Deux régressions passées seraient passées au
-  travers des tests actuels, qui ne vérifient que structure et intégrité référentielle.
 - **Fraîcheur des données** — le jeu courant s'arrête à avril 2026 ; le rafraîchissement
   n'est pas encore automatisé (`airflow_dags/` est un emplacement réservé, pas un DAG).
 

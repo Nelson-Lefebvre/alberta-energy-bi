@@ -52,23 +52,18 @@
             },
             {
               "field": {
-                "Aggregation": {
+                "Measure": {
                   "Expression": {
-                    "Column": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "dim_puits"
-                        }
-                      },
-                      "Property": "uwi"
+                    "SourceRef": {
+                      "Entity": "fact_kpis_mensuels"
                     }
                   },
-                  "Function": 5
+                  "Property": "Nb puits producteurs"
                 }
               },
-              "queryRef": "dim_puits.uwi",
-              "nativeQueryRef": "Nombre de puits",
-              "displayName": "Wells / Puits"
+              "queryRef": "fact_kpis_mensuels.Nb puits producteurs",
+              "nativeQueryRef": "Nb puits producteurs",
+              "displayName": "Producing wells / Puits producteurs"
             },
             {
               "field": {

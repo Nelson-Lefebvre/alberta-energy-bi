@@ -102,11 +102,83 @@ coefficient of variation of 5.4%.
 names, so the hard part is UWI reconstruction, a DLS to lat/lon conversion, and joins
 back to the Petrinex reference files. **99.0% coverage** against the production data.
 
-**Modelling.** dbt Core on DuckDB. Three facts, three dimensions, a conformed
-`dim_region` (without it, a region slicer would filter one fact and silently leave the
-others alone). Grain is written down per table. `fact_production_enriched` sits at well
-by month by product and carries OPEX and CO₂ allocated pro rata, which is what lets
-those measures respond to an operator or product filter.
+**Modelling.** dbt Core on DuckDB. Three facts, three dimensions, and a conformed
+`dim_region` that all three facts share. Without it a region slicer filters one fact and
+silently leaves the others alone.
+
+```mermaid
+%%{init: {'theme':'base','themeVariables':{
+  'primaryColor':'#EEF3F8','primaryBorderColor':'#2C7FC4','primaryTextColor':'#10263A',
+  'lineColor':'#7B8D9C','fontFamily':'Segoe UI, system-ui, sans-serif','fontSize':'13px'}}}%%
+erDiagram
+    dim_date     ||--o{ fact_production_enriched : ""
+    dim_date     ||--o{ fact_kpis_mensuels       : ""
+    dim_date     ||--o{ fact_emissions_scope     : ""
+    dim_puits    ||--o{ fact_production_enriched : ""
+    dim_region   ||--o{ dim_puits                : ""
+    dim_region   ||--o{ fact_kpis_mensuels       : ""
+    dim_region   ||--o{ fact_emissions_scope     : ""
+
+    dim_date {
+        int    date_key PK "YYYYMM"
+        date   date
+        int    annee
+        int    trimestre
+        int    mois
+        bool   is_hiver
+    }
+    dim_region {
+        string region PK "conformed, shared by all facts"
+    }
+    dim_puits {
+        string uwi PK
+        string region FK
+        string operator_name
+        string status "ACTIVE / ABANDONED / SUSPENDED"
+        string field
+        string well_type
+        date   spud_date
+        double latitude "rebuilt from DLS"
+        double longitude "rebuilt from DLS"
+    }
+    fact_production_enriched {
+        int    date_key FK
+        string uwi FK
+        string product_type "OIL / GAS / COND"
+        string activity_type "PROD only"
+        double volume_boe
+        double volume_brut
+        double wcs_cad "price denormalised, no dim_prix"
+        double revenu_estime_cad "liquids only"
+        double opex_cad "allocated pro rata"
+        double co2_tonnes "allocated pro rata"
+        double production_cumulative_boe
+    }
+    fact_kpis_mensuels {
+        int    date_key FK
+        string region FK
+        double production_boe
+        double revenu_estime_cad
+        double opex_total_cad
+        double capex_total_cad
+        double co2_tonnes
+        double opex_par_boe
+        double intensite_carbone
+    }
+    fact_emissions_scope {
+        int    date_key FK
+        string region FK
+        string scope "Scope1"
+        double co2_tonnes
+        double ch4_tonnes
+        double co2eq_total "CO2 + CH4 x 28"
+    }
+```
+
+Grain is written down per table. `fact_production_enriched` sits at well by month by
+product, 4.34M rows, and carries OPEX and CO₂ allocated pro rata by volume. That is what
+lets those two measures respond to an operator or product filter, which they could not
+do while they lived on the month-by-region aggregate.
 
 **Reporting.** 27 DAX measures, RLS across three roles, saved as a **PBIP project rather
 than a .pbix**: the model is TMDL and the visuals are JSON, so the whole report is

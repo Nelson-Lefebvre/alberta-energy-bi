@@ -57,16 +57,24 @@ the register.
 
 ## Data model
 
-![Star schema](diagramme_bdd.png)
+The star schema is rendered from source in [the README](../README.md#how-its-built) so
+it cannot drift out of date the way an exported image does. Column list per table:
 
-The diagram predates two changes: `dim_region` is missing from it, and
-`fact_production_enriched` now also carries `opex_cad` and `co2_tonnes`. Grains, keys
-and cardinalities are still accurate.
+| Table | Grain | Columns |
+|---|---|---|
+| `dim_date` | month | `date_key` PK, `date`, `annee`, `trimestre`, `mois`, `mois_nom`, `is_hiver` |
+| `dim_region` | region | `region` PK |
+| `dim_puits` | well | `uwi` PK, `region` FK, `operator_name`, `area`, `field`, `well_type`, `status`, `spud_date`, `latitude`, `longitude` |
+| `fact_production_enriched` | well × month × product | `date_key` FK, `uwi` FK, `product_type`, `activity_type`, `volume_boe`, `volume_brut`, `wcs_cad`, `revenu_estime_cad`, `opex_cad`, `co2_tonnes`, `production_cumulative_boe` |
+| `fact_kpis_mensuels` | month × region | `date_key` FK, `region` FK, `production_boe`, `revenu_estime_cad`, `opex_total_cad`, `capex_total_cad`, `co2_tonnes`, `opex_par_boe`, `intensite_carbone` |
+| `fact_emissions_scope` | month × region × scope | `date_key` FK, `region` FK, `scope`, `co2_tonnes`, `ch4_tonnes`, `co2eq_total` |
 
 Staging views: `stg_petrinex_production`, `stg_aer_wells`, `stg_eia_prices`,
 `stg_costs`, `stg_emissions`.
-Marts: `dim_date`, `dim_puits`, `dim_region`, `fact_production_enriched`,
-`fact_kpis_mensuels`, `fact_emissions_scope`.
+
+There is no `dim_prix` mart. Price is a monthly scalar with no attributes worth a
+dimension, so `stg_eia_prices` is joined during the build and `wcs_cad` lands
+denormalised on `fact_production_enriched`.
 
 **`dim_region` is conformed, and it has to be.** `dim_puits` and `fact_kpis_mensuels`
 are not related to each other, so a slicer sitting on one fact's own region column

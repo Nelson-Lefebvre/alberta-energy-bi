@@ -1,20 +1,20 @@
 """
-05_generate_emissions.py — Émissions ESG Scope 1 (FACT_EMISSIONS)
+05_generate_emissions.py : émissions Scope 1 (FACT_EMISSIONS)
 
 Sortie : data/processed/fact_emissions.parquet
 
-Facteurs (source : Inventaire National des GES Canada, NIR 2024).
-Calcule CO2, CH4 et CO2eq par puits et par mois à partir des volumes BOE réels
-de petrinex24, avec une variance inter-puits de +/-10 %.
+Facteurs issus de l'Inventaire national des GES du Canada (NIR 2024).
+Calcule CO2, CH4 et CO2eq par puits et par mois à partir des volumes BOE réels de
+petrinex24, avec une variance inter-puits de +/-10 %.
 
-Les volumes proviennent du périmètre canonique (production_universe), donc du
-MÊME univers que le mart : PROD, hors WATER, gaz remis à l'échelle. Le facteur
-NIR est une intensité « t CO2 par boe produit » (approche descendante), donc son
-assiette doit être la production commercialisée — la même qui sert de
-dénominateur à l'intensité carbone affichée. Auparavant les émissions étaient
-générées sur TOUTES les lignes (FUEL, VENT, SHUTIN, WATER inclus) : 11 943 puits
-portaient 16,1 Mt de CO2 sans aucune production au dénominateur, ce qui poussait
-l'intensité globale à 0,0597 au lieu de 0,0551 tCO2/boe.
+Les volumes viennent de production_universe : PROD, hors WATER, gaz remis à
+l'échelle. Le facteur NIR exprime des tonnes de CO2 par boe produit, donc son
+assiette doit être la production commercialisée, celle-là même qui sert de
+dénominateur à l'intensité carbone affichée dans le rapport.
+
+Les émissions ont d'abord été générées sur toutes les lignes, FUEL et VENT et
+SHUTIN et WATER compris. Ça donnait 11 943 puits porteurs de 16,1 Mt de CO2 sans la
+moindre production en face, et une intensité globale à 0,0597 au lieu de 0,0551.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ OUT_PARQUET = ROOT / "data" / "processed" / "fact_emissions.parquet"
 OUT_CSV = ROOT / "data" / "processed" / "fact_emissions.csv"
 
 # --------------------------------------------------------------------------- #
-# Facteurs d'émission — NIR 2024 (cf. CLAUDE.md §8)
+# Facteurs d'émission, NIR 2024
 # --------------------------------------------------------------------------- #
 RNG_SEED = 42
 FACTEUR_CO2_BOE = 0.055      # t CO2 / BOE — upstream O&G Alberta (NIR 2024).

@@ -1,13 +1,13 @@
 """
-04_generate_costs.py — Coûts opératoires simulés (FACT_COUTS)
+04_generate_costs.py : coûts opératoires simulés (FACT_COUTS)
 
 Sortie : data/processed/fact_couts.parquet
 
-SIMULATION — fourchettes basées sur AER Annual Report 2023.
+Données SIMULÉES, avec des fourchettes reprises de l'AER Annual Report 2023.
 Génère OPEX (forage + maintenance) et CAPEX par puits et par mois, à partir des
 volumes BOE réels de petrinex24 et des dates de spud de dim_puits.
 
-Règles (cf. CLAUDE.md §7) :
+Règles de génération :
   - opex_forage      ~ Normal(mu=12, sigma=2)   $/boe  x volume_boe du mois
   - opex_maintenance ~ Normal(mu=4,  sigma=1.5) $/boe  x volume_boe du mois
   - capex            ~ Log-normal ; puits récents (< 3 ans) -> CAPEX plus élevé
@@ -15,11 +15,11 @@ Règles (cf. CLAUDE.md §7) :
   - incidents        : 5 % des puits/mois -> OPEX x 2.0 (arrêt non planifié)
   - devise           : "CAD"
 
-Les volumes proviennent du périmètre canonique (production_universe) : gaz remis
-à l'échelle e3m³ et filtre PROD / hors WATER, identiques au mart. Sans ça, l'OPEX
-était calculé sur des volumes gaz 1000x trop petits alors que le dénominateur du
-ratio OPEX/boe, lui, était corrigé — l'OPEX/boe s'effondrait sur les régions
-gazières (~4 $ contre ~14,5 $ au Nord, un pur artefact d'unité).
+Les volumes viennent de production_universe, donc du même périmètre que le mart.
+Quand ce n'était pas le cas, l'OPEX se calculait sur des volumes gaz 1000 fois trop
+petits pendant que le dénominateur du ratio OPEX/boe, lui, était corrigé. Résultat :
+4 $/boe dans les régions gazières contre 14,5 $ au Nord, un écart qui ressemblait à
+une vraie différence de structure de coûts et n'était qu'un problème d'unité.
 """
 
 from __future__ import annotations
@@ -85,7 +85,7 @@ def main() -> int:
     forage_rate = np.clip(rng.normal(OPEX_FORAGE_MU, OPEX_FORAGE_SIGMA, n), 0, None)
     maint_rate = np.clip(rng.normal(OPEX_MAINT_MU, OPEX_MAINT_SIGMA, n), 0, None)
 
-    # Saisonnalité hivernale (np.select, jamais apply — cf. CLAUDE.md §3.4).
+    # Saisonnalité hivernale. np.select plutôt qu'un apply : 3,3 M de lignes.
     month = df["date"].dt.month.to_numpy()
     season_mult = np.select([np.isin(month, WINTER_MONTHS)], [WINTER_MULT], default=1.0)
 

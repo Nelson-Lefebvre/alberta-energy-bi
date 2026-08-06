@@ -1,21 +1,32 @@
+# Python
 .venv/
+__pycache__/
+.env
+
+# Data: raw downloads, intermediate Parquet/CSV and the DuckDB file are all
+# rebuilt by the pipeline, so none of it belongs in the repository.
 data/raw/*
 data/processed/*.parquet
 data/processed/*.csv
 *.duckdb
-.env
-__pycache__/
+
+# dbt: machine-specific profile, build artefacts and logs
 dbt_project/energy_analytics/profiles.yml
+dbt_project/energy_analytics/.user.yml
 dbt_project/energy_analytics/target/
 dbt_project/energy_analytics/logs/
 dbt_project/energy_analytics/dbt_packages/
-powerbi/*.pbix
-reporting/*.pbix
-*.pbix
 
-# Artefacts locaux Power BI Desktop (cache binaire + settings machine)
+# Power BI: the report lives here as a PBIP project (TMDL + JSON).
+# A .pbix is a binary export of the same thing and should not be committed.
+*.pbix
+# Desktop's local cache and per-machine editor settings
 **/.pbi/
 
-# Worktrees git et état local de l'agent — .claude/worktrees/ contient des checkouts
-# complets du dépôt : à ne jamais committer.
+# IDE and editor settings are personal, not project configuration
+.idea/
+.vscode/
+*.iml
+
+# Local tooling and scratch space
 .claude/

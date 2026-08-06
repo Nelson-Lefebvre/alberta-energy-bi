@@ -9,7 +9,7 @@ SOURCES (publiques, SANS clé API) :
   - USD/CAD       : Bank of Canada Valet, série FXUSDCAD (taux quotidien -> mensuel)
                     https://www.bankofcanada.ca/valet/observations/FXUSDCAD/json
 
-NOTE — écart documenté vs CLAUDE.md §6 :
+Écart assumé par rapport à la spécification de départ :
   Le §6 prévoyait EIA (WTI) + Alpha Vantage (FX), qui exigent tous deux une clé API.
   Pour un pipeline reproductible sans inscription, on utilise des sources keyless
   équivalentes (Yahoo Finance + Banque du Canada). WCS reste dérivé du WTI via le
@@ -42,7 +42,7 @@ OUT_CSV = ROOT / "data" / "processed" / "dim_prix.csv"
 PETRINEX_PARQUET = ROOT / "data" / "processed" / "petrinex24.parquet"
 
 # --------------------------------------------------------------------------- #
-# Paramètres métier (cf. CLAUDE.md §6)
+# Paramètres métier
 # --------------------------------------------------------------------------- #
 N_MONTHS = 24
 PUBLICATION_LAG = 2          # mois — aligné sur le lag Petrinex
@@ -121,7 +121,7 @@ def main() -> int:
 
     df = df[["date_key", "date", "wti_usd", "wcs_usd", "taux_usdcad", "wcs_cad"]]
 
-    # --- Validation (cf. CLAUDE.md §6) -------------------------------------- #
+    # --- Validation ---------------------------------------------------------- #
     if (df["wcs_usd"] <= 0).any():
         print("[!] ATTENTION : WCS USD <= 0 détecté.", file=sys.stderr)
     hors = df[~df["taux_usdcad"].between(1.20, 1.50)]

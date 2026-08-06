@@ -243,7 +243,7 @@ def convert_to_boe(df: pd.DataFrame) -> pd.DataFrame:
 
 def save_parquet(df: pd.DataFrame) -> None:
     """
-    Étape 7 — Sauvegarde en Parquet (Snappy) + CSV (cf. CLAUDE.md §4).
+    Étape 7 : sauvegarde en Parquet (Snappy) et en CSV.
 
     PyArrow ne supporte pas le type pandas 'category' → conversion str avant export.
     dbt Core re-typera les colonnes dans les modèles staging.

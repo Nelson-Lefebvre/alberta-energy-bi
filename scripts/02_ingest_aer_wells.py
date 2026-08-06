@@ -12,7 +12,7 @@ SOURCES (toutes publiques, déposées dans data/raw/ par le script de récupéra
   - data/raw/field_codes.csv   Petrinex Field Codes : FieldCode -> FieldName
                                https://www.petrinex.gov.ab.ca/bbreports/PRAFieldCodes.csv
 
-NOTE — écart documenté vs CLAUDE.md §5 :
+Écart assumé par rapport à la spécification de départ :
   Le ST37 réel n'est PAS un Excel et ne contient ni latitude/longitude, ni noms
   d'opérateur/champ (uniquement des codes), ni champ « area ». On reconstruit donc :
     - uwi             : clé Petrinex 16 car. reconstruite depuis le DLS (UWI display)

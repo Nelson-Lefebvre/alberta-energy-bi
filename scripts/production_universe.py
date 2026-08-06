@@ -1,26 +1,23 @@
 """
-production_universe.py — Définition CANONIQUE du périmètre « production ».
+Définition unique du périmètre de production.
 
-Importé par 04_generate_costs.py et 05_generate_emissions.py pour que les coûts,
-les émissions et le mart `fact_production_enriched` partagent EXACTEMENT le même
-univers de volumes.
+Les scripts 04 et 05 importent ce module pour que les coûts, les émissions et le
+mart fact_production_enriched travaillent sur exactement les mêmes volumes.
 
-Pourquoi ce module existe : les ratios du dashboard (OPEX/boe, intensité carbone)
-divisent un numérateur SIMULÉ par les scripts 04/05 par un dénominateur issu du
-MART dbt. Si les deux côtés ne filtrent pas et ne redimensionnent pas les volumes
-à l'identique, le ratio est faux sans qu'aucun test ne se déclenche. Cette
-divergence s'est produite deux fois (correctif gaz absent de 04 ; filtre PROD
-absent de 05) : la logique vit donc désormais à un seul endroit.
+L'enjeu : OPEX/boe et intensité carbone divisent un numérateur simulé ici par un
+dénominateur qui vient du mart dbt. Si un côté filtre ou redimensionne les volumes
+autrement que l'autre, le ratio est faux et rien ne le signale, parce que les tables
+restent parfaitement valides. C'est arrivé deux fois, une par règle ci-dessous.
 
-Deux règles, à garder synchronisées avec dbt :
+Ces deux règles doivent rester alignées sur leurs équivalents dbt :
 
-  1. Correctif unité gaz (x1000) — cf. models/staging/stg_petrinex_production.sql
-     Petrinex déclare le gaz en 10³m³ (e3m³), pas en m³ ; l'ingest 01 a converti
-     en boe sans appliquer ce facteur.
+  1. Échelle du gaz (x1000), cf. models/staging/stg_petrinex_production.sql
+     Petrinex déclare le gaz en 10³m³, pas en m³. Le script 01 convertit en boe
+     sans appliquer ce facteur.
 
-  2. Filtre production commercialisée — cf. models/marts/fact_production_enriched.sql
-     activity_type == 'PROD' et product_type != 'WATER' : exclut le gaz combustible
-     (FUEL), torché/évacué (VENT), les puits fermés (SHUTIN) et l'eau produite.
+  2. Production commercialisée, cf. models/marts/fact_production_enriched.sql
+     activity_type == 'PROD' et product_type != 'WATER'. Exclut le gaz combustible
+     (FUEL), le gaz torché ou évacué (VENT), les puits fermés (SHUTIN) et l'eau.
 """
 
 from __future__ import annotations
@@ -29,18 +26,18 @@ from pathlib import Path
 
 import pandas as pd
 
-# Périmètre partagé avec fact_production_enriched.sql — toute modification ici
-# doit être répercutée dans le mart (et inversement).
+# Ces trois constantes ont un miroir dans fact_production_enriched.sql.
+# Changer l'une sans l'autre casse silencieusement les ratios du rapport.
 ACTIVITY_TYPE_RETENU = "PROD"
 PRODUCT_TYPES_EXCLUS = ("WATER",)
-FACTEUR_ECHELLE_GAZ = 1000  # e3m³ -> m³
+FACTEUR_ECHELLE_GAZ = 1000  # e3m³ vers m³
 
 
 def charger_volumes_mensuels(petrinex_parquet: Path) -> pd.DataFrame:
-    """Volumes BOE agrégés au grain (uwi, mois) sur le périmètre production.
+    """Volumes BOE agrégés par puits et par mois, sur le périmètre production.
 
-    Retourne les colonnes ``uwi``, ``date``, ``volume_boe`` — gaz remis à
-    l'échelle, lignes hors périmètre écartées, volumes nuls ou négatifs exclus.
+    Renvoie uwi, date et volume_boe : gaz remis à l'échelle, lignes hors périmètre
+    écartées, volumes nuls ou négatifs exclus.
     """
     prod = pd.read_parquet(
         petrinex_parquet,

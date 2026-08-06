@@ -1,4 +1,4 @@
--- Fait production enrichi (cf. CLAUDE.md §9.4) : revenu estimé via WCS CAD,
+-- Fait production enrichi : revenu estimé via WCS CAD,
 -- production cumulée par puits, et OPEX / CO2 ramenés au grain de la ligne.
 --
 -- Pourquoi l'OPEX et le CO2 vivent ICI et plus seulement dans fact_kpis_mensuels :

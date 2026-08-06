@@ -62,7 +62,7 @@ Power BI.
 
 ## 2. Conventions transverses
 
-Ces règles s'appliquent à **tous** les scripts (issues de `CLAUDE.md`).
+Ces règles s'appliquent à **tous** les scripts.
 
 - **Ancrage des chemins** : chaque script calcule
   `ROOT = Path(__file__).resolve().parent.parent`. Aucun chemin absolu en dur ;
@@ -375,170 +375,57 @@ le dossier du projet avec `--profiles-dir .`).
 | `fact_kpis_mensuels` | mois × région | agrégats : production, revenu, OPEX, CAPEX, CO₂, `opex_par_boe`, `intensite_carbone` (joint prod./coûts/émissions sur uwi+date_key, puis région via dim_puits) |
 | `fact_emissions_scope` | mois × région × scope | CO₂/CH₄/CO₂eq agrégés |
 
-### 8.4 Tests (`schema.yml`)
+### 8.4 Tests
 
-- **staging** : `not_null` (uwi, date_key, volume_boe, lat/lon…), `unique`
-  (`dim_puits.uwi`, `dim_prix.date_key`), `accepted_values` (product_type,
-  activity_type, scope).
-- **marts** : `unique` (`dim_date.date_key`, `dim_puits.uwi`), `not_null` sur les
-  clés, et **`relationships`** `fact_production_enriched.uwi → dim_puits.uwi` en
-  **`severity: warn`** (≈ 8 % d'UWI orphelins = couverture ST37 imparfaite + UWI de
-  facilité 7 caractères ; volontairement non bloquant).
+**Structurels** (`schema.yml`) : `not_null` et `unique` sur les clés, `accepted_values`
+sur product_type, activity_type et scope, plus un `relationships`
+`fact_production_enriched.uwi → dim_puits.uwi` laissé en `severity: warn`. Il remonte
+24 lignes, soit un UWI producteur qui disparaît de `dim_puits` après déduplication
+insensible à la casse. Power BI apparie les clés de la même façon, donc ça ne se voit
+pas dans le rapport.
+
+**De plausibilité** (`tests/`) : quatre tests singuliers qui ne vérifient pas la forme
+des tables mais la vraisemblance des ratios. Ils existent parce que deux régressions
+sont passées au travers des tests structurels, tous au vert.
+
+| Test | Ce qu'il verrouille |
+|---|---|
+| `assert_univers_partages` | coûts, émissions et production couvrent le même ensemble (puits, mois) |
+| `assert_facteur_conversion_boe` | 6,290 boe/m³ liquides, 5,885 boe/10³m³ gaz |
+| `assert_opex_par_boe_plausible` | OPEX/boe entre 8 et 30, **par région** |
+| `assert_intensite_carbone_plausible` | intensité entre 0,050 et 0,060, **par région** |
+
+Le grain fait tout : pendant le bug, l'OPEX/boe global valait 9,21 $, donc dans la
+bande. Seule la ventilation par région montrait le défaut.
 
 ### 8.5 Résultat
 
-`dbt build` → **PASS 37 / WARN 1 / ERROR 0**.
+`dbt build` → **PASS 42 / WARN 1 / ERROR 0** sur 43 nœuds.
 `dbt docs generate` → lineage copié dans `docs/dbt/` (pour GitHub Pages).
 
 ---
 
 ## 9. Base DuckDB et tables finales
 
-Fichier : `data/energy.duckdb` (gitignoré). Contenu après `dbt build` :
+Fichier : `data/energy.duckdb` (gitignoré). Après `dbt build` il contient six tables
+matérialisées et cinq vues de staging.
 
-```
-BASE TABLE  dim_date
-BASE TABLE  dim_puits
-BASE TABLE  fact_production_enriched
-BASE TABLE  fact_kpis_mensuels
-BASE TABLE  fact_emissions_scope
-VIEW        stg_aer_wells | stg_costs | stg_eia_prices | stg_emissions | stg_petrinex_production
-```
+Le schéma en étoile, les colonnes de chaque table et les relations sont décrits dans
+[ARCHITECTURE.md](ARCHITECTURE.md#data-model), qui fait référence. Deux points souvent
+mal compris :
 
-**Relations en étoile** (côté Power BI) : les faits se joignent à `dim_puits` (via
-`uwi`), `dim_date` et `dim_prix` (via `date_key`). Toutes les relations sont 1‑à‑N,
-filtre du dim vers le fait.
+- `dim_region` est une **dimension conforme** partagée par les trois faits. Sans elle,
+  un slicer région filtrerait un seul fait et laisserait les autres au total, sans
+  aucun signe visible.
+- Il n'y a **pas** de table `dim_prix`. Le prix est un scalaire mensuel sans attribut
+  méritant une dimension : `stg_eia_prices` est joint au build et `wcs_cad` atterrit
+  dénormalisé sur `fact_production_enriched`.
 
-**Repères de cohérence** : production mensuelle ~75–83 Mboe, OPEX/boe 16–19 $,
-intensité carbone 0,055, revenu PROD cumulé ~137,9 G$ CAD.
-
-### 9.1 Diagramme du modèle en étoile (ERD)
-
-Trois tables de faits gravitent autour de trois dimensions partagées. `dim_date` et
-`dim_prix` se branchent par `date_key` ; `dim_puits` par `uwi`. `region` est une
-**dimension dégénérée** portée par les faits agrégés (pas de table séparée).
-
-```mermaid
-erDiagram
-    dim_date ||--o{ fact_production_enriched : "date_key"
-    dim_prix ||--o{ fact_production_enriched : "date_key"
-    dim_puits ||--o{ fact_production_enriched : "uwi"
-    dim_date ||--o{ fact_kpis_mensuels : "date_key"
-    dim_date ||--o{ fact_emissions_scope : "date_key"
-
-    dim_date {
-        int date_key PK "YYYYMM"
-        date date
-        int annee
-        int trimestre
-        int mois
-        string mois_nom
-        bool is_hiver
-    }
-    dim_prix {
-        int date_key PK "YYYYMM"
-        date date
-        double wti_usd
-        double wcs_usd
-        double taux_usdcad
-        double wcs_cad
-    }
-    dim_puits {
-        string uwi PK "16 car. Petrinex"
-        string operator_name
-        string area
-        string region
-        string field
-        string well_type
-        string status
-        date spud_date
-        double latitude
-        double longitude
-    }
-    fact_production_enriched {
-        int date_key FK
-        string uwi FK
-        string product_type
-        string activity_type
-        double volume_boe
-        double volume_brut
-        double wcs_cad
-        double revenu_estime_cad
-        double production_cumulative_boe
-    }
-    fact_kpis_mensuels {
-        int date_key FK
-        string region "dim. dégénérée"
-        double production_boe
-        double revenu_estime_cad
-        double opex_total_cad
-        double capex_total_cad
-        double co2_tonnes
-        double opex_par_boe
-        double intensite_carbone
-    }
-    fact_emissions_scope {
-        int date_key FK
-        string region "dim. dégénérée"
-        string scope
-        double co2_tonnes
-        double ch4_tonnes
-        double co2eq_total
-    }
-```
-
-**Vue schématique (étoile)** — repli si le rendu Mermaid n'est pas disponible :
-
-```
-                             ┌──────────────────────────┐
-                             │         dim_date         │
-                             │  🔑 date_key  (PK YYYYMM) │
-                             │  date · annee · trimestre │
-                             │  mois · mois_nom · is_hiver│
-                             └─────────────┬────────────┘
-                                           │ 1
-                  ┌────────────────────────┼────────────────────────┐
-                  │ N                      │ N                       │ N
-   ┌──────────────┴─────────────┐  ┌───────┴───────────┐  ┌──────────┴──────────┐
-   │ fact_production_enriched   │  │ fact_kpis_mensuels│  │ fact_emissions_scope│
-   │ (grain : ligne de prod.)   │  │ (date_key×région) │  │(date_key×région×scope)│
-   │────────────────────────────│  │───────────────────│  │─────────────────────│
-   │ 🔗 date_key  → dim_date     │  │ 🔗 date_key        │  │ 🔗 date_key          │
-   │ 🔗 uwi       → dim_puits    │  │    region (dégén.)│  │    region (dégén.)  │
-   │ 🔗 date_key  → dim_prix     │  │    production_boe │  │    scope            │
-   │    product/activity_type   │  │    revenu_estime  │  │    co2_tonnes       │
-   │    volume_boe · volume_brut│  │    opex_total_cad │  │    ch4_tonnes       │
-   │    wcs_cad                  │  │    capex_total_cad│  │    co2eq_total      │
-   │    revenu_estime_cad        │  │    co2_tonnes     │  └─────────────────────┘
-   │    production_cumulative_boe│  │    opex_par_boe   │
-   └───────┬──────────────┬─────┘  │    intensite_carb.│
-           │ N            │ N      └───────────────────┘
-   uwi     │              │  date_key
-   ┌───────┴──────────┐   └──────────────┐
-   │    dim_puits     │                  │ N
-   │ 🔑 uwi  (PK)      │          ┌───────┴───────────┐
-   │  operator_name   │          │     dim_prix      │
-   │  area · region   │          │ 🔑 date_key (PK)   │
-   │  field · well_type│         │  date · wti_usd   │
-   │  status          │          │  wcs_usd          │
-   │  spud_date       │          │  taux_usdcad      │
-   │  latitude/longit.│          │  wcs_cad          │
-   └──────────────────┘          └───────────────────┘
-
-   🔑 = clé primaire (dimension)    🔗 = clé étrangère (fait)
-   Cardinalité : 1 (dimension) ──< N (fait) ; sens du filtre : dim → fait.
-```
-
-> **Notes de modélisation**
-> - `fact_production_enriched` est la table de faits **détaillée** (un enregistrement
->   par ligne de production Petrinex) ; les deux autres sont **pré-agrégées** pour les
->   pages KPI et ESG (perf. Power BI).
-> - `dim_prix` provient du staging (`stg_eia_prices`) : elle n'est pas matérialisée en
->   mart mais s'expose à Power BI comme dimension date-prix (clé `date_key`).
-> - `region` n'a pas de table : c'est une **dimension dégénérée** stockée dans les faits
->   agrégés, héritée de `dim_puits.region` au moment de l'agrégation dbt.
+**Repères de cohérence** : OPEX/boe 17,5 $ toutes régions, intensité carbone 0,0550
+tCO2/boe, revenu cumulé 137,7 G$ CAD sur 24 mois.
 
 ---
+
 
 ## 10. Données de référence et fichiers bruts
 
@@ -589,7 +476,7 @@ dbt docs generate --profiles-dir .        # lineage -> target/ (copié dans docs
 
 ## 12. Décisions de conception et écarts
 
-Écarts assumés vs spécification initiale (`CLAUDE.md`), avec justification :
+Écarts assumés par rapport à la spécification de départ, avec justification :
 
 | Point | Spéc. initiale | Réalité / choix | Pourquoi |
 |---|---|---|---|

@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "87aa4b3704e5e1062951",
   "position": {
-    "x": 724,
+    "x": 688,
     "y": 32,
     "z": 61,
     "height": 68,
-    "width": 164,
+    "width": 176,
     "tabOrder": 0
   },
   "visual": {
@@ -127,7 +127,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Date Années/Years'"
+                  "Value": "'Année / Year'"
                 }
               }
             }

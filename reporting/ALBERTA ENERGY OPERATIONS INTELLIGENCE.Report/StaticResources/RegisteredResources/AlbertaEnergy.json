@@ -26,7 +26,7 @@
   "textClasses": {
     "callout": {
       "fontFace": "Segoe UI Semibold",
-      "fontSize": 28,
+      "fontSize": 20,
       "color": "#10263A"
     },
     "title": {
@@ -237,7 +237,7 @@
                 "color": "#10263A"
               }
             },
-            "fontSize": 28,
+            "fontSize": 20,
             "fontFamily": "Segoe UI Semibold"
           }
         ],
@@ -250,7 +250,8 @@
               }
             },
             "fontSize": 9,
-            "fontFamily": "Segoe UI"
+            "fontFamily": "Segoe UI",
+            "wordWrap": true
           }
         ]
       }
@@ -561,6 +562,34 @@
         "outline": [
           {
             "show": false
+          }
+        ]
+      }
+    },
+    "cardVisual": {
+      "*": {
+        "calloutValue": [
+          {
+            "color": {
+              "solid": {
+                "color": "#10263A"
+              }
+            },
+            "fontSize": 20,
+            "fontFamily": "Segoe UI Semibold"
+          }
+        ],
+        "label": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#7B8D9C"
+              }
+            },
+            "fontSize": 9,
+            "fontFamily": "Segoe UI",
+            "wordWrap": true
           }
         ]
       }

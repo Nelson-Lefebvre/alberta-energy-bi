@@ -6,7 +6,7 @@
     "y": 16,
     "z": 65,
     "height": 100,
-    "width": 240,
+    "width": 200,
     "tabOrder": -1000
   },
   "visual": {
@@ -23,7 +23,7 @@
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontStyle": "italic",
-                      "fontSize": "18pt",
+                      "fontSize": "14pt",
                       "color": "#12395B"
                     }
                   }

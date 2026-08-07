@@ -37,7 +37,8 @@ Technical detail behind [the project README](../README.md).
 | Yahoo Finance WTI (CL=F) | Monthly WTI price, basis for WCS | JSON |
 | Bank of Canada FXUSDCAD | Monthly USD/CAD rate | JSON |
 
-Full URLs are in [`DOCUMENTATION.md`](DOCUMENTATION.md).
+Full URLs, ingestion constants, simulation parameters and a glossary are in
+[`DOCUMENTATION.md`](DOCUMENTATION.md).
 
 ## Python pipeline
 

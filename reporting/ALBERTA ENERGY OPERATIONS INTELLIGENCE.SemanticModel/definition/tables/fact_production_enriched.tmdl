@@ -152,7 +152,7 @@ table fact_production_enriched
 		mode: import
 		source =
 				let
-				  Source = Odbc.DataSource("Driver={DuckDB Driver};Database=C:\Users\NelsonX16\Documents\GitHub\alberta-energy-bi\data\energy.duckdb;access_mode=READ_ONLY", [HierarchicalNavigation = true]),
+				  Source = Odbc.DataSource("Driver={DuckDB Driver};Database=" & DuckDBPath & ";access_mode=READ_ONLY", [HierarchicalNavigation = true]),
 				  #"Navigation 1" = Source{[Name = "energy", Kind = "Database"]}[Data],
 				  #"Navigation 2" = #"Navigation 1"{[Name = "main", Kind = "Schema"]}[Data],
 				  #"Navigation 3" = #"Navigation 2"{[Name = "fact_production_enriched", Kind = "Table"]}[Data]

@@ -8,7 +8,7 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 1
 
-annotation PBI_QueryOrder = ["dim_date","dim_puits","fact_emissions_scope","fact_kpis_mensuels","fact_production_enriched","dim_region"]
+annotation PBI_QueryOrder = ["dim_date","dim_puits","fact_emissions_scope","fact_kpis_mensuels","fact_production_enriched","dim_region","DuckDBPath"]
 
 annotation PBI_ProTooling = ["DevMode"]
 

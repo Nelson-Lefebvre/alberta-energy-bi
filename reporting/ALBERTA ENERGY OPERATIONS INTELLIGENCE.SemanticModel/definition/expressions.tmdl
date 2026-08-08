@@ -1,0 +1,7 @@
+/// Absolute path to the DuckDB file produced by `dbt build`.
+/// Point it at your own clone: Home > Transform data > Manage parameters.
+expression DuckDBPath = "C:\alberta-energy-bi\data\energy.duckdb" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 0a04a3b6-f7fb-4a03-b8f7-4d2ff62a9c12
+
+	annotation PBI_ResultType = Text
+

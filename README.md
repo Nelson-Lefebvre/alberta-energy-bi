@@ -14,9 +14,9 @@ modelled into a star schema, and reported in Power BI.
 
 | | | |
 |---|---|---|
-| **3.54 Bn boe** produced | **598,396** wells on the register | **3,015** operators |
-| **24 months** of filings | **149,340** producing wells | **4.34M** fact rows |
-| **CAD 137.7 Bn** revenue | **$17.48** OPEX per barrel | **194.6 Mt** Scope 1 CO₂ |
+| **3.55 Bn boe** produced | **599,275** wells on the register | **3,016** operators |
+| **24 months** of filings | **148,693** producing wells | **4.34M** fact rows |
+| **CAD 138.3 Bn** revenue | **$17.47** OPEX per barrel | **195.2 Mt** Scope 1 CO₂ |
 
 Production volumes, prices and well locations are real. Costs and emissions are
 simulated from those volumes using AER and NIR 2024 factors. Full assumptions in
@@ -41,7 +41,7 @@ difference in cost structure. It wasn't. Lined up against gas share:
 A near-perfect inverse relationship. Cost structures don't behave like that; **unit
 errors do**. Petrinex reports gas in 10³m³, not m³, and the rescaling existed in the
 production branch of the pipeline but not the cost branch. Numerator and denominator
-were in different units. After the fix, OPEX/boe sits between **$17.38 and $17.61 across
+were in different units. After the fix, OPEX/boe sits between **$17.43 and $17.57 across
 all five regions**.
 
 The second bug had the same shape. Emissions were generated for every Petrinex record,
@@ -85,7 +85,7 @@ because that's exactly where the unit bug surfaced.
 ![ESG performance](docs/screenshots/p4_esg.png)
 
 Scope 1 CO₂ and CO₂e against Alberta's 2030 intensity target, missed by 37.5%. The
-conversion is checkable by hand: 194.6 + 2.21 × 28 = 256.5 Mt.
+conversion is checkable by hand: 195.2 + 2.22 × 28 = 257.3 Mt.
 
 ### Forecast and trends
 
@@ -194,14 +194,14 @@ Setup, sources, model detail, DAX and assumptions: [`docs/ARCHITECTURE.md`](docs
 
 ## What I'd do next
 
-The **inactive well inventory** is the piece I want most. 449,057 wells with no
-production, 66,984 of them abandoned, which is 75% of the register. Reclamation
+The **inactive well inventory** is the piece I want most. 450,582 wells with no
+production, 278,554 of them already abandoned, which is 75% of the register. Reclamation
 liability is a live financial and political issue in Alberta, the data is already in the
 model, and it's the one genuinely non-simulated finding here that I haven't used.
 
 CAPEX needs recalibrating: it lands near $33k per well against a real $2 to 8 million,
-and it isn't surfaced anywhere yet. Data stops at April 2026 and refresh isn't
-automated. Two pages still expose UWI slicers with 598k values, which needs a search
+and it isn't surfaced anywhere yet. Data stops at June 2026 and refresh isn't
+automated. Two pages still expose UWI slicers with 599k values, which needs a search
 control instead.
 
 ---

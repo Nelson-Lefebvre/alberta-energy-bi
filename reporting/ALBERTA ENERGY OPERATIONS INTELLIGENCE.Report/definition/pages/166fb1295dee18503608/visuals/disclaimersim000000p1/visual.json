@@ -3,9 +3,9 @@
   "name": "disclaimersim000000p1",
   "position": {
     "x": 32,
-    "y": 678,
-    "z": 900,
-    "height": 34,
+    "y": 698,
+    "z": 15000,
+    "height": 18,
     "width": 1216,
     "tabOrder": 20000
   },
@@ -19,21 +19,9 @@
               {
                 "textRuns": [
                   {
-                    "value": "Simulated data — costs, revenue and emissions are modelled from public production volumes. Not official or company-reported figures.",
+                    "value": "Simulated data — costs, revenue and emissions are modelled from public production volumes, not official figures.   ·   Données simulées — coûts, revenus et émissions modélisés depuis les volumes publics, chiffres non officiels.",
                     "textStyle": {
-                      "fontSize": "8pt",
-                      "color": "#7B8D9C",
-                      "fontStyle": "italic"
-                    }
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": "Données simulées — coûts, revenus et émissions modélisés à partir des volumes de production publics. Chiffres non officiels.",
-                    "textStyle": {
-                      "fontSize": "8pt",
+                      "fontSize": "7pt",
                       "color": "#7B8D9C",
                       "fontStyle": "italic"
                     }

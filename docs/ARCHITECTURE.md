@@ -147,8 +147,11 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 
-# 2. Manual raw files in data/raw/ :
-#    ST37.zip, ba_codes.csv, field_codes.csv
+# 2. Raw files script 02 reads. Scripts 01 and 03 fetch their own.
+mkdir data\raw
+curl -o data\raw\ST37.zip        https://static.aer.ca/prd/documents/sts/st37/ST37.zip
+curl -o data\raw\ba_codes.csv    https://www.petrinex.gov.ab.ca/bbreports/PRABAIdentifiers.csv
+curl -o data\raw\field_codes.csv https://www.petrinex.gov.ab.ca/bbreports/PRAFieldCodes.csv
 
 # 3. Python pipeline, in this order
 python scripts\01_ingest_petrinex.py
@@ -162,7 +165,8 @@ cd dbt_project\energy_analytics
 dbt build --profiles-dir .
 dbt docs generate --profiles-dir .
 
-# 5. Open the reporting\ folder in Power BI Desktop, then Refresh
+# 5. Open the reporting\ folder in Power BI Desktop,
+#    set the DuckDBPath parameter to your own clone, then Refresh
 ```
 
 `profiles.yml` is not versioned because it holds a machine path. Create one in
@@ -179,8 +183,30 @@ energy_analytics:
 ```
 
 Two things bite on a fresh clone. Staging views read the Parquet files by relative path,
-so dbt has to run from `dbt_project/energy_analytics`. And the database path is
-hard-coded in the semantic model's M partitions, so it needs editing.
+so dbt has to run from `dbt_project/energy_analytics`. And the semantic model needs to be
+told where the database is: the six M partitions all read one shared parameter,
+`DuckDBPath`, declared in `SemanticModel/definition/expressions.tmdl`. Set it once under
+**Home > Transform data > Manage parameters**, or edit that one line before opening the
+project.
+
+Its default is `C:\alberta-energy-bi\data\energy.duckdb` rather than a path under a home
+directory, because Power BI Desktop writes the parameter value back into
+`expressions.tmdl` on save. A machine-specific default would land in every commit. On
+Windows the cheapest way to make that default true is a directory junction, which needs
+no elevation:
+
+```powershell
+New-Item -ItemType Junction -Path "C:\alberta-energy-bi" -Target "<your clone>"
+```
+
+## Simulated figures
+
+Production volumes, prices and well locations come from Petrinex and the AER register.
+Costs, revenue and emissions do not exist in any public filing at well grain, so scripts
+04 and 05 generate them from those volumes using AER and NIR 2024 factors. The report
+carries that caveat on every page that shows a modelled number, because operators are
+named on those pages and the figures are not theirs. Parameters are listed in
+[`DOCUMENTATION.md`](DOCUMENTATION.md).
 
 ## Assumed trade-offs
 

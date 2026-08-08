@@ -4021,7 +4021,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Active wells / Puits actifs": {
+			          "Active wells (registry) / Puits actifs (registre)": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -4063,7 +4063,7 @@ cultureInfo fr-FR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Abandoned wells / Puits abandonnés": {
+			          "Abandoned wells (registry) / Puits abandonnés (registre)": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",

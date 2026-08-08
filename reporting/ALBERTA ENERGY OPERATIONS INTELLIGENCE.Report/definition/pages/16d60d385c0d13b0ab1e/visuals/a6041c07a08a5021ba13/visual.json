@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "a6041c07a08a5021ba13",
   "position": {
     "x": 32,
     "y": 24,
     "z": 70,
     "height": 84,
-    "width": 229,
+    "width": 87,
     "tabOrder": 12000
   },
   "visual": {
@@ -18,14 +18,34 @@
             "sourceType": {
               "expr": {
                 "Literal": {
-                  "Value": "'imageUrl'"
+                  "Value": "'image'"
                 }
               }
             },
-            "sourceUrl": {
-              "expr": {
-                "Literal": {
-                  "Value": "'https://rdpassociates.com/wp-content/uploads/2019/07/Alberta_wordmark_2009.svg_.png'"
+            "sourceFile": {
+              "image": {
+                "name": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'oil-alberta-mark.png'"
+                    }
+                  }
+                },
+                "url": {
+                  "expr": {
+                    "ResourcePackageItem": {
+                      "PackageName": "RegisteredResources",
+                      "PackageType": 1,
+                      "ItemName": "oil-alberta-mark8588749197473726.png"
+                    }
+                  }
+                },
+                "scaling": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'Normal'"
+                    }
+                  }
                 }
               }
             }

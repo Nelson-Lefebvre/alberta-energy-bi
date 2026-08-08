@@ -68,6 +68,11 @@
           "name": "AlbertaEnergy.json",
           "path": "AlbertaEnergy.json",
           "type": "CustomTheme"
+        },
+        {
+          "name": "oil-alberta-mark8588749197473726.png",
+          "path": "oil-alberta-mark8588749197473726.png",
+          "type": "Image"
         }
       ]
     }

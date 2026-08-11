@@ -23,8 +23,10 @@ Dropped into `data/raw/`, gitignored, all public.
 | `ba_codes.csv` | `petrinex.gov.ab.ca/bbreports/PRABAIdentifiers.csv` | BA code → operator name |
 | `field_codes.csv` | `petrinex.gov.ab.ca/bbreports/PRAFieldCodes.csv` | field code → name |
 
-Prices need no manual file: WTI from Yahoo Finance (`CL=F`, `/v8/finance/chart/CL=F`),
-USD/CAD from the Bank of Canada Valet API (series `FXUSDCAD`).
+Prices need no manual file: WTI **and WCS** from the Government of Alberta
+(`api.economicdata.alberta.ca/data?table=OilPrices&Type=WCS;WTI`, monthly since 2005),
+USD/CAD from the Bank of Canada Valet API (series `FXUSDCAD`). Note the response field is
+named `"Type "`, with a trailing space; script 03 strips keys rather than hard-coding it.
 
 **ST37 TXT layout.** 24 tab-delimited columns, including `UWI-DISPLAY-FORMAT`, DLS
 location (Township / Meridian / Range / Section / LSD), `WELL-NAME`, `FIELD-CODE`,
@@ -41,7 +43,7 @@ from DLS.
 | `MAX_WORKERS` | 6 | concurrent downloads | 01 |
 | `BOE_LIQUID` | 6.29 | 1 m³ liquid = 6.29 boe | 01 |
 | `BOE_GAS` | 35.31 / 6000 | ≈ 0.005885 boe/m³, so 5.885 boe per 10³m³ | 01 |
-| `WCS_DISCOUNT_USD` | 17.5 | mean historical WCS discount to WTI, USD/bbl | 03 |
+| `DIFFERENTIEL_MIN` / `MAX` | 0 / 45 | plausibility bounds on WTI − WCS, USD/bbl | 03 |
 
 Kept products: `OIL`, `GAS`, `WATER`, `COND`. Kept activities: `PROD`, `SHUTIN`, `FUEL`,
 `VENT`. The marts narrow this further to `PROD` excluding `WATER` — see
@@ -52,46 +54,78 @@ figures above differ by exactly that factor of 1000.
 
 ## 3. Simulation parameters
 
-> Costs and emissions are **simulated** from real BOE volumes. Ranges are anchored on the
-> *AER Annual Report 2023* and Canada's *National Inventory Report 2024*. They are not
-> measured data.
+> **Costs** are **simulated** from real BOE volumes, with ranges anchored on the *AER Annual
+> Report 2023*. They are not measured data.
+>
+> **Emissions are not simulated.** Since script 05 was rewritten they come from the FUEL,
+> VENT and FLARE volumes operators declare to Petrinex, converted with *National Inventory
+> Report* and AER *Directive 060* factors. See 3.2.
 
 ### 3.1 Costs — script 04
 
 | Constant | Value | Effect |
 |---|---|---|
 | `RNG_SEED` | 42 | reproducible numpy generator |
-| `OPEX_FORAGE_MU / SIGMA` | 12 / 2 | drilling rate $/boe, Normal |
-| `OPEX_MAINT_MU / SIGMA` | 4 / 1.5 | maintenance rate $/boe, Normal |
+| `OPEX_TAUX['OIL' / 'COND']` | 15 / 2.5 + 5 / 1.5 | ~20 $/boe, drilling + maintenance, Normal |
+| `OPEX_TAUX['GAS']` | 4.5 / 1 + 1.5 / 0.5 | ~6 $/boe, i.e. ~$1.00/Mcf at 6.01 Mcf/boe |
 | `CAPEX_LOGNORM_MEAN / SIGMA` | 11.5 / 0.6 | CAPEX, log-normal, CAD |
 | `CAPEX_RECENT_MULT` | 2.5 | uplift for wells under 3 years old |
 | `WINTER_MULT` | 1.15 | OPEX × 1.15 in Jan/Feb/Mar |
 | `INCIDENT_RATE / MULT` | 0.05 / 2.0 | 5 % of (well, month) pairs → OPEX × 2 |
 
-Rates are drawn per (well, month) and truncated at zero, then multiplied by real volume,
-so `opex = rate × volume`. Holding the rate constant over a pair is what makes the pro
-rata reallocation onto well × month × product exact rather than approximate.
+Rates are drawn per (well, month, **product**) and truncated at zero, then multiplied by
+real volume, so `opex = rate × volume`.
 
-Resulting OPEX/boe: p05 12.2, median 16.7, p95 24.9.
+The product grain is not cosmetic. A single rate applied to every molecule was invisible
+while gas carried no revenue; once the Alberta gas reference price was ingested, gas
+earned $8.72/boe against a flat $17.47 of cost and the report showed it losing money at
+−105 %. That was an artefact of the cost model, not a finding. Splitting the rate by
+product also required moving generation to the triple, because 68.6 % of the volume comes
+from (well, month) pairs producing both gas and liquids, where one rate would have been
+an average rather than a cost.
+
+Resulting volume-weighted OPEX/boe: **$6.56 for gas, $21.81 for oil, $21.74 for
+condensate**. $14.59 overall.
 
 **CAPEX is illustrative and not calibrated.** It lands near $33k per well against a real
 $2 to 8 million. It is not surfaced in the report.
 
 ### 3.2 Emissions — script 05
 
+**Emissions are not simulated.** Script 05 reads the FUEL, VENT and FLARE gas volumes
+operators report to Petrinex and converts them with published factors. There is no random
+draw, so two runs on the same parquet are byte-identical.
+
 | Constant | Value | Meaning |
 |---|---|---|
-| `FACTEUR_CO2_BOE` | 0.055 | t CO₂ / boe, Alberta upstream O&G |
-| `FACTEUR_CH4_BOE` | 0.000625 | t CH₄ / boe, calibrated |
-| `CO2EQ_CH4` | 28 | CH₄ GWP100, IPCC AR6 (≈ AR5) |
-| `VARIANCE_PUITS` | 0.10 | ±10 % inter-well variance |
+| `CO2_COMBUSTION_KG_M3` | 1.916 | kg CO₂ per m³ burned — NIR Annex 6, table A6.1-5 |
+| `CH4_COMBUSTION_KG_M3` | 0.000037 | kg CH₄ per m³ — unburned slip |
+| `FRACTION_CH4_GAZ` | 0.80 | methane volume fraction of vented gas, AER Directive 060 |
+| `FRACTION_CO2_GAZ` | 0.01 | CO₂ volume fraction of vented gas |
+| `DENSITE_CH4_KG_M3` | 0.6784 | CH₄ density at 15 °C, 101.325 kPa |
+| `DENSITE_CO2_KG_M3` | 1.8393 | CO₂ density, same conditions |
+| `RENDEMENT_TORCHE` | 0.98 | flare combustion efficiency, AER Directive 060 |
+| `CO2EQ_CH4` | 28 | CH₄ GWP100, IPCC AR5 |
 | `SCOPE` | `Scope1` | direct upstream emissions |
 
-**Calibration.** Factors were adjusted against published provincial totals rather than
-by inventing per-well data. The methane factor was 0.004, roughly six times too high,
-which put CH₄ at 7.7 Mt/yr and CO₂e at 297 Mt/yr — above Alberta's entire provincial
-total. Recalibrated against the NIR/AER 2014 baseline of ~31.4 Mt CO₂e ÷ 25, it now
-gives ~1.2 Mt CH₄/yr.
+**Two grains in one column.** Petrinex does not report everything per well. Sixteen-character
+identifiers are well UWIs; seven-character ones are facility codes, and facilities carry
+**97.9%** of the emitting volume while existing nowhere in `dim_puits`. Facility volumes are
+therefore allocated to the producing wells of the same operator in the same month, pro rata
+by volume — the rule already applied to OPEX. Because the allocation never crosses an
+operator boundary, the total per operator stays exact and operator carbon intensity is a
+measurement. A single well's intensity is an allocation, not a measurement, and should not
+be used to rank wells against each other.
+
+**Declared, not total.** Petrinex records the gas an operator measures and reports. It does
+not cover fugitives, pneumatic vents or undeclared methane. The CH₄ produced here is roughly
+a tenth of provincial upstream estimates. That is the gap between declared and real, not a
+calculation error, and the report should say so.
+
+**Facilities without production.** 4.8% of CO₂eq belongs to operators running facilities but
+producing nothing that month — processing plants and midstream. Allocating it to a third
+party's wells would be wrong, so those rows keep their facility code and land in the
+"outside AER register" bucket, where they belong.
 
 **Scope is Petrinex wells.** Mined oil sands bitumen, roughly 1.3 Mbbl/d and not reported
 per well, is out of scope by construction. That is a boundary, not an undercount.
@@ -121,12 +155,13 @@ are available per well. Read it as operating margin, not net profitability.
 | ST37 source | Excel `aer_wells.xlsx` | tab-delimited TXT in `ST37.zip` | the AER publishes no Excel |
 | latitude / longitude | columns of ST37 | converted from DLS | absent from the TXT; avoids a geopandas dependency |
 | `operator_name`, `field` | names in ST37 | joins to Petrinex reference files | ST37 carries codes only |
-| WTI and FX | EIA + Alpha Vantage | Yahoo Finance + Bank of Canada | both originals require API keys |
+| WTI, WCS and FX | EIA + Alpha Vantage | Government of Alberta + Bank of Canada | both originals require API keys; Alberta publishes WCS measured, so it is no longer derived from WTI |
 | relationship test | blocking | `warn` | residual is 24 rows, one UWI lost to case-insensitive dedup, against 99.0 % coverage |
 
 Held to throughout: real public data for volumes, prices and wells; the standard AER BOE
-conversion; WCS = WTI − 17.5; costs and emissions simulated but anchored on official
-references; no hard-coded absolute paths; numpy vectorisation.
+conversion; WTI and WCS both taken measured from the province; emissions derived from
+volumes declared to Petrinex; costs simulated but anchored on official references; no
+hard-coded absolute paths; numpy vectorisation.
 
 ## 6. Glossary
 
@@ -169,9 +204,11 @@ Déposés dans `data/raw/`, gitignorés, tous publics.
 | `ba_codes.csv` | `petrinex.gov.ab.ca/bbreports/PRABAIdentifiers.csv` | code BA → nom opérateur |
 | `field_codes.csv` | `petrinex.gov.ab.ca/bbreports/PRAFieldCodes.csv` | code champ → nom |
 
-Les prix ne demandent aucun fichier manuel : WTI depuis Yahoo Finance (`CL=F`,
-`/v8/finance/chart/CL=F`), USD/CAD depuis l'API Valet de la Banque du Canada (série
-`FXUSDCAD`).
+Les prix ne demandent aucun fichier manuel : WTI **et WCS** depuis le Gouvernement de
+l'Alberta (`api.economicdata.alberta.ca/data?table=OilPrices&Type=WCS;WTI`, mensuel
+depuis 2005), USD/CAD depuis l'API Valet de la Banque du Canada (série `FXUSDCAD`).
+Attention, le champ de la réponse s'appelle `"Type "`, avec une espace finale : le
+script 03 normalise les clés plutôt que de coder ce détail en dur.
 
 **Format du ST37 TXT.** 24 colonnes tabulées, dont `UWI-DISPLAY-FORMAT`, la localisation
 DLS (Township / Méridien / Range / Section / LSD), `WELL-NAME`, `FIELD-CODE`,
@@ -188,7 +225,7 @@ script 02.
 | `MAX_WORKERS` | 6 | téléchargements simultanés | 01 |
 | `BOE_LIQUID` | 6.29 | 1 m³ liquide = 6,29 boe | 01 |
 | `BOE_GAS` | 35.31 / 6000 | ≈ 0,005885 boe/m³, soit 5,885 boe par 10³m³ | 01 |
-| `WCS_DISCOUNT_USD` | 17.5 | décote historique moyenne WCS vs WTI, USD/bbl | 03 |
+| `DIFFERENTIEL_MIN` / `MAX` | 0 / 45 | bornes de vraisemblance de l'écart WTI − WCS, USD/bbl | 03 |
 
 Produits conservés : `OIL`, `GAS`, `WATER`, `COND`. Activités conservées : `PROD`,
 `SHUTIN`, `FUEL`, `VENT`. Les marts resserrent ensuite à `PROD` hors `WATER` — voir
@@ -199,46 +236,82 @@ chiffres ci-dessus diffèrent exactement de ce facteur 1000.
 
 ## 3. Paramètres de simulation
 
-> Les coûts et les émissions sont **simulés** à partir de volumes BOE réels. Les
-> fourchettes sont calées sur l'*AER Annual Report 2023* et l'*Inventaire national des GES
-> du Canada 2024*. Ce ne sont pas des données mesurées.
+> Les **coûts** sont **simulés** à partir de volumes BOE réels, avec des fourchettes calées
+> sur l'*AER Annual Report 2023*. Ce ne sont pas des données mesurées.
+>
+> **Les émissions ne le sont plus.** Depuis la réécriture du script 05, elles proviennent
+> des volumes FUEL, VENT et FLARE déclarés à Petrinex par les opérateurs, convertis avec
+> les facteurs de l'*Inventaire national des GES* et de la *Directive 060* de l'AER.
+> Voir 3.2.
 
 ### 3.1 Coûts — script 04
 
 | Constante | Valeur | Effet |
 |---|---|---|
 | `RNG_SEED` | 42 | générateur numpy reproductible |
-| `OPEX_FORAGE_MU / SIGMA` | 12 / 2 | tarif forage $/boe, loi Normale |
-| `OPEX_MAINT_MU / SIGMA` | 4 / 1.5 | tarif maintenance $/boe, loi Normale |
+| `OPEX_TAUX['OIL' / 'COND']` | 15 / 2,5 + 5 / 1,5 | ~20 $/boe, forage + maintenance, Normale |
+| `OPEX_TAUX['GAS']` | 4,5 / 1 + 1,5 / 0,5 | ~6 $/boe, soit ~1,00 $/Mcf à 6,01 Mcf/boe |
 | `CAPEX_LOGNORM_MEAN / SIGMA` | 11.5 / 0.6 | CAPEX, log-normale, CAD |
 | `CAPEX_RECENT_MULT` | 2.5 | majoration des puits de moins de 3 ans |
 | `WINTER_MULT` | 1.15 | OPEX × 1,15 en janvier, février, mars |
 | `INCIDENT_RATE / MULT` | 0.05 / 2.0 | 5 % des couples (puits, mois) → OPEX × 2 |
 
-Les tarifs sont tirés par couple (puits, mois) et tronqués à zéro, puis multipliés par le
-volume réel : `opex = tarif × volume`. C'est parce que le tarif reste constant sur un
-couple que la réallocation au prorata sur puits × mois × produit est exacte et non
-approchée.
+Les tarifs sont tirés par triplet (puits, mois, **produit**) et tronqués à zéro, puis
+multipliés par le volume réel : `opex = tarif × volume`.
 
-OPEX/boe obtenu : p05 12,2, médiane 16,7, p95 24,9.
+Le grain produit n'est pas cosmétique. Un tarif unique pour toutes les molécules restait
+invisible tant que le gaz ne portait aucun revenu ; depuis l'ingestion du prix de
+référence albertain, le gaz rapporte 8,72 $/boe contre un coût plat de 17,47 $, et le
+rapport l'affichait déficitaire à −105 %. C'était un artefact du modèle de coût, pas un
+résultat. Le passage au triplet était nécessaire parce que 68,6 % du volume vient de
+couples (puits, mois) produisant à la fois du gaz et des liquides, où un tarif unique
+aurait été une moyenne et non un coût.
+
+OPEX/boe pondéré obtenu : **6,56 $ pour le gaz, 21,81 $ pour le pétrole, 21,74 $ pour le
+condensat**. Au global 14,59 $.
 
 **Le CAPEX est illustratif et non calibré.** Il tombe autour de 33 k$ par puits contre 2 à
-8 M$ réels. Il n'apparaît nulle part dans le rapport.
+8 M$ réels. Il n'apparaît nulle part dans le rapport, et sa mesure DAX a été retirée du
+modèle sémantique.
 
 ### 3.2 Émissions — script 05
 
+**Les émissions ne sont plus simulées.** Le script 05 lit les volumes de gaz FUEL, VENT et
+FLARE que les opérateurs déclarent à Petrinex et les convertit avec des facteurs publiés.
+Aucun tirage aléatoire : deux exécutions sur le même parquet donnent le même fichier au
+bit près.
+
 | Constante | Valeur | Signification |
 |---|---|---|
-| `FACTEUR_CO2_BOE` | 0.055 | t CO₂ / boe, amont O&G Alberta |
-| `FACTEUR_CH4_BOE` | 0.000625 | t CH₄ / boe, calibré |
-| `CO2EQ_CH4` | 28 | PRG100 du CH₄, GIEC AR6 (≈ AR5) |
-| `VARIANCE_PUITS` | 0.10 | variance inter-puits ±10 % |
+| `CO2_COMBUSTION_KG_M3` | 1.916 | kg CO₂ par m³ brûlé — NIR annexe 6, tableau A6.1-5 |
+| `CH4_COMBUSTION_KG_M3` | 0.000037 | kg CH₄ par m³ — imbrûlé de combustion |
+| `FRACTION_CH4_GAZ` | 0.80 | fraction volumique de méthane du gaz évacué, Directive 060 |
+| `FRACTION_CO2_GAZ` | 0.01 | fraction volumique de CO₂ du gaz évacué |
+| `DENSITE_CH4_KG_M3` | 0.6784 | masse volumique du CH₄ à 15 °C, 101,325 kPa |
+| `DENSITE_CO2_KG_M3` | 1.8393 | masse volumique du CO₂, mêmes conditions |
+| `RENDEMENT_TORCHE` | 0.98 | rendement de combustion des torches, Directive 060 |
+| `CO2EQ_CH4` | 28 | PRG100 du CH₄, GIEC AR5 |
 | `SCOPE` | `Scope1` | émissions directes amont |
 
-**Calage.** Les facteurs ont été ajustés sur des totaux provinciaux publiés, sans inventer
-de donnée par puits. Le facteur méthane valait 0,004, environ six fois trop, ce qui plaçait
-le CH₄ à 7,7 Mt/an et le CO₂e à 297 Mt/an, au-dessus du total provincial albertain.
-Recalé sur la base NIR/AER 2014 de ~31,4 Mt CO₂e ÷ 25, il donne ~1,2 Mt CH₄/an.
+**Deux grains dans une même colonne.** Petrinex ne déclare pas tout au puits. Les
+identifiants de 16 caractères sont des UWI de puits, ceux de 7 caractères des codes
+d'installation — et les installations portent **97,9 %** du volume émetteur tout en
+n'existant nulle part dans `dim_puits`. Leurs volumes sont donc répartis sur les puits
+producteurs du même opérateur et du même mois, au prorata du volume, règle déjà appliquée
+à l'OPEX. Comme la répartition ne franchit jamais la frontière d'un opérateur, le total
+par opérateur reste exact et l'intensité carbone par opérateur est une mesure. Celle d'un
+puits isolé est une allocation, pas une mesure, et ne doit pas servir à classer des puits
+entre eux.
+
+**Déclaré, pas total.** Petrinex enregistre le gaz que l'opérateur mesure et rapporte. Ni
+les fuites diffuses, ni les évents de pneumatiques, ni le méthane non déclaré n'y figurent.
+Le CH₄ obtenu vaut environ un dixième des estimations provinciales amont : c'est l'écart
+entre déclaré et réel, pas une erreur de calcul, et le rapport doit le dire.
+
+**Installations sans production.** 4,8 % du CO₂eq revient à des opérateurs qui exploitent
+des installations sans rien produire ce mois-là — usines de traitement, intermédiaires. Le
+répartir sur les puits d'un tiers serait faux : ces lignes gardent leur code installation
+et tombent dans le seau « hors référentiel AER », où elles sont à leur place.
 
 **Le périmètre, ce sont les puits Petrinex.** Le bitume miné des sables, environ
 1,3 Mbbl/j et non déclaré par puits, en est exclu par construction. C'est une frontière,
@@ -272,12 +345,13 @@ par puits. À lire comme une marge opératoire, pas comme une rentabilité nette
 | Source ST37 | Excel `aer_wells.xlsx` | TXT tabulé dans `ST37.zip` | l'AER ne publie pas d'Excel |
 | latitude / longitude | colonnes du ST37 | converties depuis le DLS | absentes du TXT ; évite une dépendance geopandas |
 | `operator_name`, `field` | noms dans le ST37 | jointures aux référentiels Petrinex | le ST37 ne porte que des codes |
-| WTI et change | EIA + Alpha Vantage | Yahoo Finance + Banque du Canada | les deux sources d'origine exigent des clés API |
+| WTI, WCS et change | EIA + Alpha Vantage | Gouvernement de l'Alberta + Banque du Canada | les deux sources d'origine exigent des clés API ; l'Alberta publiant le WCS mesuré, il n'est plus dérivé du WTI |
 | test relationnel | bloquant | `warn` | reliquat de 24 lignes, un UWI perdu à la déduplication insensible à la casse, pour 99,0 % de couverture |
 
 Tenu d'un bout à l'autre : données publiques réelles pour les volumes, les prix et les
-puits ; conversion BOE standard AER ; WCS = WTI − 17,5 ; coûts et émissions simulés mais
-calés sur des références officielles ; aucun chemin absolu en dur ; vectorisation numpy.
+puits ; conversion BOE standard AER ; WTI et WCS pris mesurés à la source provinciale ;
+émissions dérivées des volumes déclarés à Petrinex ; coûts simulés mais calés sur des
+références officielles ; aucun chemin absolu en dur ; vectorisation numpy.
 
 ## 6. Glossaire
 

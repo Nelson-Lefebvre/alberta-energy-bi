@@ -16,11 +16,12 @@ modelled into a star schema, and reported in Power BI.
 |---|---|---|
 | **3.55 Bn boe** produced | **599,275** wells on the register | **3,016** operators |
 | **24 months** of filings | **148,693** producing wells | **4.34M** fact rows |
-| **CAD 138.3 Bn** revenue | **$17.47** OPEX per barrel | **195.2 Mt** Scope 1 CO₂ |
+| **CAD 167.3 Bn** revenue | **$14.59** OPEX per barrel | **91.2 Mt** Scope 1 CO₂ |
 
-Production volumes, prices and well locations are real. Costs and emissions are
-simulated from those volumes using AER and NIR 2024 factors. Full assumptions in
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#assumed-trade-offs).
+Production volumes, prices and well locations are real. Emissions are computed from the
+fuel, vent and flare volumes operators declare to Petrinex, using NIR annex 6 and AER
+Directive 060 factors — no random draws. Only operating costs are simulated. Full
+assumptions in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#assumed-trade-offs).
 
 ---
 
@@ -38,11 +39,21 @@ difference in cost structure. It wasn't. Lined up against gas share:
 | Peace River | 76.7 % | $4.08 |
 | Central | 76.9 % | $4.03 |
 
-A near-perfect inverse relationship. Cost structures don't behave like that; **unit
-errors do**. Petrinex reports gas in 10³m³, not m³, and the rescaling existed in the
-production branch of the pipeline but not the cost branch. Numerator and denominator
-were in different units. After the fix, OPEX/boe sits between **$17.43 and $17.57 across
-all five regions**.
+A near-perfect inverse relationship, and the magnitude gave it away. Gas genuinely is
+cheaper to operate per barrel of oil equivalent, so *some* inverse slope is expected —
+but not this one. **$4.03/boe is below any credible operating floor**: no Alberta
+producer lifts, compresses, dehydrates and ships a barrel equivalent for four dollars.
+The global figure was $9.21, comfortably inside any sane band, which is exactly why a
+test on the total saw nothing.
+
+The cause was a unit error. Petrinex reports gas in 10³m³, not m³, and the rescaling
+existed in the production branch of the pipeline but not the cost branch. Numerator and
+denominator were in different units, so the more gas a region produced, the more its
+OPEX/boe was diluted.
+
+After that fix, and after giving each product its own operating rate, OPEX/boe sits
+between **$10.05 and $19.22** across the five regions — still an inverse function of gas
+share, but now the *legitimate* one, ~$6/boe for gas against ~$20 for liquids.
 
 The second bug had the same shape. Emissions were generated for every Petrinex record,
 while the production mart excludes fuel gas, flared and vented volumes, and shut-in
@@ -55,10 +66,16 @@ Then four plausibility tests, because nothing structural could have caught eithe
 the tables were valid, the keys present, referential integrity intact.
 
 The grain is the whole trick. While the bug was live the **global** OPEX/boe was $9.21,
-comfortably inside any sane band. A test on the total would have passed. Only the
-per-region split exposed it. Replayed against a pre-fix copy of the database, the tests
-return **3 regions out of band, 1 on intensity, and 413,760 orphaned (well, month)
-pairs**.
+comfortably inside any sane band. A test on the total would have passed. Only the split
+exposed it. Replayed against a pre-fix copy of the database, the tests return **3 regions
+out of band, 1 on intensity, and 413,760 orphaned (well, month) pairs**.
+
+That lesson has since been applied twice more. The OPEX test now checks **per product**
+rather than per region, because differentiating operating rates by product made regional
+variation legitimate — a regional band would now reject a correct result. And a new test
+asserts that every product carrying volume also carries revenue, after gas spent months
+priced at zero: 47% of the barrels, no revenue, and not one structural test could see it
+because the tables were valid and the total stayed plausible.
 
 ---
 
@@ -71,28 +88,35 @@ Five pages, one conformed region slicer, row-level security on three roles.
 ![Production and wells map](docs/screenshots/p2_production.png)
 
 Every producing well in the province, geolocated from coordinates rebuilt out of the
-Dominion Land Survey, since ST37 ships without lat/lon. Filtered to 2025 here.
+Dominion Land Survey, since ST37 ships without lat/lon.
 
 ### Costs and profitability
 
 ![Costs and profitability](docs/screenshots/p3_costs.png)
 
-OPEX waterfall by region. The flat $17.5 across all five is the check I look at first,
-because that's exactly where the unit bug surfaced.
+OPEX waterfall by region. The first thing I check is whether the spread tracks gas share
+and nothing else: $10.05/boe in Central at 76.9% gas, $19.22 in Nord at 17.1%. Anything
+outside that relationship means the cost branch and the production branch have drifted
+apart again, which is exactly how the unit bug surfaced.
 
 ### ESG performance
 
 ![ESG performance](docs/screenshots/p4_esg.png)
 
-Scope 1 CO₂ and CO₂e against Alberta's 2030 intensity target, missed by 37.5%. The
-conversion is checkable by hand: 195.2 + 2.22 × 28 = 257.3 Mt.
+Scope 1 CO₂ and CO₂e against Alberta's 2030 intensity target, sitting 35.8% below it. The
+conversion is checkable by hand: 91.2 + 0.261 × 28 = 98.5 Mt.
+
+That check only works because both cards now read the same fact. They used not to: CO₂e
+came from the emissions fact and Scope 1 from the production fact after allocation, so
+the 5.0 Mt declared by installations with no producing well underneath them showed up as
+a gap between the two cards and read like methane. A test now pins the ratio.
 
 ### Forecast and trends
 
 ![Forecast and trends](docs/screenshots/p5_forecast.png)
 
-Six-month forecast at 95% confidence, with year-over-year trend at +3.4% and a
-coefficient of variation of 5.4%.
+Six-month forecast at 95% confidence, with year-over-year trend at +3.9% and a
+coefficient of variation of 5.2%.
 
 ---
 
@@ -188,7 +212,12 @@ Every ratio takes numerator and denominator from the same fact. A ratio spanning
 grains freezes the moment someone applies a slicer only one side can see, and it doesn't
 look broken while it does it.
 
-Setup, sources, model detail, DAX and assumptions: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Setup, sources, model detail, DAX and assumptions: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md),
+which also covers who owns the source data and what you may do with it.
+
+The dbt catalogue is committed under `docs/dbt/`. GitHub serves those files as source
+rather than as a rendered page, so open `docs/dbt/index.html` from a local clone, or
+regenerate it with `dbt docs generate && dbt docs serve` from `dbt_project/energy_analytics`.
 
 ---
 

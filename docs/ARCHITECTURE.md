@@ -7,7 +7,7 @@ Technical detail behind [the project README](../README.md).
 ```
                  Public sources
   ┌────────────┬──────────────┬─────────────────┬───────────────┐
-  │ Petrinex   │  AER ST37    │ Petrinex ref.   │ Yahoo Finance │
+  │ Petrinex   │  AER ST37    │ Petrinex ref.   │ Alberta Gov.  │
   │ Volumetric │  Well List   │ (BA / Field)    │ + Bank of Can.│
   └─────┬──────┴──────┬───────┴────────┬────────┴──────┬────────┘
         │             │                │               │
@@ -34,11 +34,29 @@ Technical detail behind [the project README](../README.md).
 | Petrinex Conventional Volumetrics | Monthly AB production, 24 months | ZIP→CSV |
 | AER ST37 List of Wells | Well register: DLS location, status, licence | ZIP→TXT |
 | Petrinex Business Associate / Field Codes | Operator and field reference data | CSV |
-| Yahoo Finance WTI (CL=F) | Monthly WTI price, basis for WCS | JSON |
+| Government of Alberta `OilPrices` | Monthly WTI **and WCS**, USD/bbl, since 2005 | JSON |
 | Bank of Canada FXUSDCAD | Monthly USD/CAD rate | JSON |
 
 Full URLs, ingestion constants, simulation parameters and a glossary are in
 [`DOCUMENTATION.md`](DOCUMENTATION.md).
+
+### Terms
+
+No source data is redistributed here. Every raw and derived file is gitignored and the
+pipeline fetches its own inputs, so cloning this repository gives you the code and the
+report definition, never the datasets.
+
+Rights in the underlying data stay with their publishers: Petrinex and the Government of
+Alberta for volumetrics, reference codes and oil prices, the Alberta Energy Regulator for
+the ST37 register, and the Bank of Canada for the exchange rate. Check each publisher's
+own terms before reusing their data, particularly for anything commercial.
+
+Every source is now a government or regulator publication. The pipeline previously pulled
+WTI from Yahoo Finance, whose terms were the most restrictive of the set; moving prices to
+the province's own `OilPrices` table removed that dependency.
+
+The MIT licence on this repository covers the code, the dbt models and the report
+definition. It does not grant any right over the source data.
 
 ## Python pipeline
 
@@ -100,11 +118,20 @@ four singular tests check whether the numbers can be true:
 |---|---|
 | `assert_univers_partages` | costs, emissions and production cover the same (well, month) set |
 | `assert_facteur_conversion_boe` | 6.290 boe/m³ for liquids, 5.885 boe/10³m³ for gas |
-| `assert_opex_par_boe_plausible` | OPEX/boe within 8 to 30, per region |
-| `assert_intensite_carbone_plausible` | carbon intensity within 0.050 to 0.060, per region |
+| `assert_opex_par_boe_plausible` | OPEX/boe within 15–30 for liquids, 4–10 for gas, **per product** |
+| `assert_intensite_carbone_plausible` | carbon intensity within 0.005 to 0.080, per region |
+| `assert_emissions_perimetre` | emissions and production share one scope rule |
+| `assert_revenu_couvre_le_volume` | every product carrying volume also carries revenue |
+| `assert_prix_gaz_exploitable` | gas price present, within 0–25 CAD/GJ, at most 3 carried-forward months |
+| `assert_co2eq_coherent` | CO₂e / CO₂ ratio between 1.0 and 1.5 on the allocated fact |
 
 Replayed against a copy of the database from before the fixes, they return 3 regions out
 of band on OPEX, 1 on intensity, and 413,760 orphaned (well, month) pairs.
+
+`assert_opex_par_boe_plausible` moved from region to product when operating rates were
+split by product. Regional OPEX/boe now varies legitimately with gas share — $10.05 in
+Central at 76.9 % gas against $19.22 in Nord at 17.1 % — so a tight regional band would
+reject a correct result. The band belongs at the grain where the rate is defined.
 
 The remaining warning is a relationship test returning 24 rows: one producing UWI that
 disappears from `dim_puits` after case-insensitive deduplication. Power BI matches keys
@@ -202,11 +229,22 @@ New-Item -ItemType Junction -Path "C:\alberta-energy-bi" -Target "<your clone>"
 ## Simulated figures
 
 Production volumes, prices and well locations come from Petrinex and the AER register.
-Costs, revenue and emissions do not exist in any public filing at well grain, so scripts
-04 and 05 generate them from those volumes using AER and NIR 2024 factors. The report
-carries that caveat on every page that shows a modelled number, because operators are
-named on those pages and the figures are not theirs. Parameters are listed in
-[`DOCUMENTATION.md`](DOCUMENTATION.md).
+
+**Emissions no longer belong here.** Script 05 derives them from the FUEL, VENT and FLARE
+gas volumes operators declare to Petrinex, converted with NIR and AER Directive 060
+factors. Those are declared figures rather than total ones — fugitives and undeclared
+methane are outside Petrinex — but they are measured activity, not a draw, and carbon
+intensity now varies about eighteen-fold between operators where the simulated version
+had them all within 1% of each other.
+
+**Costs remain simulated.** OPEX and CAPEX exist in no public filing at well grain, so
+script 04 generates them from real volumes. The consequence is worth stating plainly:
+because the OPEX rate is drawn independently of the well, OPEX per boe is statistically
+identical across operators, and any ranking built on it sorts noise. The report carries a
+caveat on every page showing a modelled number, because operators are named there and the
+figures are not theirs.
+
+Parameters for both are listed in [`DOCUMENTATION.md`](DOCUMENTATION.md).
 
 ## Assumed trade-offs
 
@@ -229,8 +267,15 @@ being dropped, so totals stay right and the gap stays visible.
 
 **Source substitutions.** ST37 arrives as tab-delimited text with no coordinates and no
 names, so coordinates come from a DLS conversion and names from the Petrinex reference
-files. EIA and Alpha Vantage both require API keys, so prices come from Yahoo Finance
-and the Bank of Canada instead, with WCS set at WTI minus $17.50.
+files. EIA and Alpha Vantage both require API keys, so prices come from the Government
+of Alberta's `OilPrices` table and the Bank of Canada instead.
+
+WCS used to be derived as WTI minus a fixed $17.50. Checked against the published
+Alberta series it does not hold: the real differential averages $13.30 and swings
+between $9.95 and $18.99 over the window, so the fixed figure was too wide in 22 months
+out of 24 and understated basin revenue by 10.4%, or $14.3B. Both series now come
+measured from the same provincial source, which also removed the Yahoo Finance
+dependency.
 
 **CAPEX is illustrative.** It is simulated log-normally to give the cost structure a
 shape and is not calibrated against real Alberta drilling costs.

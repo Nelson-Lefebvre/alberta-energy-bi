@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Simulated data — costs, revenue and emissions are modelled from public production volumes, not official figures.   ·   Données simulées — coûts, revenus et émissions modélisés depuis les volumes publics, chiffres non officiels.",
+                    "value": "Operating costs simulated. Production, wells and prices are official filings; emissions from declared fuel, vent and flare volumes; revenue estimated.   ·   Coûts opératoires simulés. Production, puits et prix officiels ; émissions depuis les volumes déclarés de gaz consommé, évacué et torché ; revenu estimé.",
                     "textStyle": {
                       "fontSize": "8pt",
                       "color": "#7B8D9C",

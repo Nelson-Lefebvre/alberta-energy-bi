@@ -123,6 +123,28 @@
         }
       ]
     },
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Production & 3-month MA / Production & moyenne mobile 3 mois'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   }
 }

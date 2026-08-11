@@ -148,6 +148,26 @@ table fact_production_enriched
 
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
+	column co2eq_tonnes
+		dataType: double
+		lineageTag: b8af7fb4-d76f-4a5c-bf68-343af6579050
+		summarizeBy: sum
+		sourceColumn: co2eq_tonnes
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column gaz_cad_gj
+		dataType: double
+		lineageTag: b8af7fb4-d76f-4a5c-bf68-343af6579051
+		summarizeBy: none
+		sourceColumn: gaz_cad_gj
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
 	partition fact_production_enriched = m
 		mode: import
 		source =

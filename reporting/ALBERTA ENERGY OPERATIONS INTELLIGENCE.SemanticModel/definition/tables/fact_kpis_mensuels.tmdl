@@ -38,7 +38,7 @@ table fact_kpis_mensuels
 
 	/// Production des 12 derniers mois (run-rate annualisé).
 	measure 'Run-rate annualisé' = CALCULATE ( [Production BOE], DATESINPERIOD ( dim_date[date], MAX ( dim_date[date] ), -12, MONTH ) )
-		formatString: #,0
+		formatString: #,0.0
 		displayFolder: 1 Production
 		lineageTag: 7f000001-0000-4000-8000-000000000005
 
@@ -68,12 +68,6 @@ table fact_kpis_mensuels
 		formatString: \$#,0;-\$#,0;\$#,0
 		displayFolder: 2 Finance
 		lineageTag: 7f000002-0000-4000-8000-000000000002
-
-	/// CAPEX total (investissement ponctuel, corrigé dans le mart dbt).
-	measure 'CAPEX Total CAD' = SUM ( fact_kpis_mensuels[capex_total_cad] )
-		formatString: \$#,0;-\$#,0;\$#,0
-		displayFolder: 2 Finance
-		lineageTag: 7f000002-0000-4000-8000-000000000003
 
 	/// OPEX par baril équivalent pétrole — ratio des sommes (exact). Numérateur et
 	/// dénominateur sont désormais pris sur le même fait, donc le ratio reste juste
@@ -105,8 +99,13 @@ table fact_kpis_mensuels
 		displayFolder: 3 ESG
 		lineageTag: 7f000003-0000-4000-8000-000000000001
 
-	/// CO2 équivalent total (CO2 + CH4 × 28, GWP100 GIEC AR6), grain région × scope.
-	measure 'CO2eq Total (t)' = SUM ( fact_emissions_scope[co2eq_total] )
+	/// CO2 équivalent total (CO2 + CH4 × 28, GWP100 GIEC AR6). Lu sur le MÊME fait que
+	/// 'CO2 Scope 1 (t)'. Auparavant cette mesure prenait fact_emissions_scope, avant
+	/// allocation, pendant que Scope 1 prenait le fait alloué : les deux cartes de la
+	/// page ESG affichaient 91,2 et 103,5 Mt sur des bases différentes, et l'écart de
+	/// 5,0 Mt — des installations sans puits producteur ce mois-là — passait pour du
+	/// méthane. Même fait des deux côtés, la conversion redevient vérifiable à la main.
+	measure 'CO2eq Total (t)' = SUM ( fact_production_enriched[co2eq_tonnes] )
 		formatString: #,0
 		displayFolder: 3 ESG
 		lineageTag: 7f000003-0000-4000-8000-000000000002

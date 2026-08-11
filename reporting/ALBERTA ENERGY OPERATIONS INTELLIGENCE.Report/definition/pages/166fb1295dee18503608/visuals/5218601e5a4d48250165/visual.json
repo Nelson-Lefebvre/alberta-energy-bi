@@ -3,10 +3,10 @@
   "name": "5218601e5a4d48250165",
   "position": {
     "x": 9.05193370165746,
-    "y": 278.5984039287907,
+    "y": 278.59840392879067,
     "z": 7000,
-    "height": 391.4015960712093,
-    "width": 906.1991405770411,
+    "height": 391.40159607120933,
+    "width": 906.19914057704113,
     "tabOrder": 6000
   },
   "visual": {
@@ -152,7 +152,29 @@
         }
       ]
     },
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Production & WCS price / Production & prix WCS'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   },
   "filterConfig": {
     "filters": [

@@ -8,7 +8,7 @@ modelled into a star schema, and reported in Power BI.
 ![dbt](https://img.shields.io/badge/dbt-1.11-FF694B?logo=dbt&logoColor=white)
 ![DuckDB](https://img.shields.io/badge/DuckDB-1.10-FFF000?logo=duckdb&logoColor=black)
 ![Power BI](https://img.shields.io/badge/Power%20BI-PBIP-F2C811?logo=powerbi&logoColor=black)
-![Tests](https://img.shields.io/badge/dbt%20build-42%20pass%20%C2%B7%200%20error-2E7D32)
+![Tests](https://img.shields.io/badge/dbt%20build-46%20pass%20%C2%B7%200%20error-2E7D32)
 
 ![Executive summary page of the Power BI report](docs/screenshots/p1_executive.png)
 
@@ -16,7 +16,7 @@ modelled into a star schema, and reported in Power BI.
 |---|---|---|
 | **3.55 Bn boe** produced | **599,275** wells on the register | **3,016** operators |
 | **24 months** of filings | **148,693** producing wells | **4.34M** fact rows |
-| **CAD 167.3 Bn** revenue | **$14.59** OPEX per barrel | **91.2 Mt** Scope 1 CO₂ |
+| **CAD 167.3 Bn** revenue | **$14.60** OPEX per barrel | **91.2 Mt** Scope 1 CO₂ |
 
 Production volumes, prices and well locations are real. Emissions are computed from the
 fuel, vent and flare volumes operators declare to Petrinex, using NIR annex 6 and AER

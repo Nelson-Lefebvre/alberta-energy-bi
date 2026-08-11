@@ -85,7 +85,7 @@ from (well, month) pairs producing both gas and liquids, where one rate would ha
 an average rather than a cost.
 
 Resulting volume-weighted OPEX/boe: **$6.56 for gas, $21.81 for oil, $21.74 for
-condensate**. $14.59 overall.
+condensate**. $14.60 overall.
 
 **CAPEX is illustrative and not calibrated.** It lands near $33k per well against a real
 $2 to 8 million. It is not surfaced in the report.
@@ -268,7 +268,7 @@ couples (puits, mois) produisant à la fois du gaz et des liquides, où un tarif
 aurait été une moyenne et non un coût.
 
 OPEX/boe pondéré obtenu : **6,56 $ pour le gaz, 21,81 $ pour le pétrole, 21,74 $ pour le
-condensat**. Au global 14,59 $.
+condensat**. Au global 14,60 $.
 
 **Le CAPEX est illustratif et non calibré.** Il tombe autour de 33 k$ par puits contre 2 à
 8 M$ réels. Il n'apparaît nulle part dans le rapport, et sa mesure DAX a été retirée du

@@ -27,6 +27,3 @@ dbt_project/energy_analytics/dbt_packages/
 .idea/
 .vscode/
 *.iml
-
-# Local tooling and scratch space
-.claude/

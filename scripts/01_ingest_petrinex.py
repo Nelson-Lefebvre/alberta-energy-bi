@@ -40,11 +40,15 @@ COLUMN_MAPPING = {
 
 # Filtres métier (identifiés sur les données réelles)
 KEEP_PRODUCTS   = {"OIL", "GAS", "WATER", "COND"}
-KEEP_ACTIVITIES = {"PROD", "SHUTIN", "FUEL", "VENT"}
+KEEP_ACTIVITIES = {"PROD", "SHUTIN", "FUEL", "VENT", "FLARE"}
 #  PROD   → production réelle du puits       ← cœur du dashboard
 #  SHUTIN → puits fermé temporairement       ← statut puits
 #  FUEL   → consommation carburant sur site  ← module ESG
 #  VENT   → émissions atmosphériques         ← module ESG
+#  FLARE  → gaz torché                       ← module ESG
+# Les trois dernières sont les entrées du script 05, qui calcule les émissions à
+# partir des volumes déclarés plutôt qu'à partir d'un facteur appliqué à la
+# production. Les retirer vide la page ESG.
 
 # Étape 6 — Facteurs de conversion m³ → BOE (standard AER Alberta)
 #  OIL / COND : 1 m³  = 6.2898 BOE

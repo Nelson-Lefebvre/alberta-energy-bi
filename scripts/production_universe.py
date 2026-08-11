@@ -33,11 +33,18 @@ PRODUCT_TYPES_EXCLUS = ("WATER",)
 FACTEUR_ECHELLE_GAZ = 1000  # e3m³ vers m³
 
 
-def charger_volumes_mensuels(petrinex_parquet: Path) -> pd.DataFrame:
+def charger_volumes_mensuels(
+    petrinex_parquet: Path, par_produit: bool = False
+) -> pd.DataFrame:
     """Volumes BOE agrégés par puits et par mois, sur le périmètre production.
 
     Renvoie uwi, date et volume_boe : gaz remis à l'échelle, lignes hors périmètre
     écartées, volumes nuls ou négatifs exclus.
+
+    Avec par_produit=True, product_type entre dans les clés d'agrégation. Le script 04
+    en a besoin : un baril de gaz et un baril de pétrole n'ont pas le même coût
+    opératoire, et 68,6 % du volume vient de couples (puits, mois) qui produisent les
+    deux. Un taux unique par puits-mois y serait un mélange, pas un coût.
     """
     prod = pd.read_parquet(
         petrinex_parquet,
@@ -54,8 +61,9 @@ def charger_volumes_mensuels(petrinex_parquet: Path) -> pd.DataFrame:
     is_gas = prod["product_type"].astype(str) == "GAS"
     prod.loc[is_gas, "volume_boe"] = prod.loc[is_gas, "volume_boe"] * FACTEUR_ECHELLE_GAZ
 
+    cles = ["uwi", "date", "product_type"] if par_produit else ["uwi", "date"]
     grp = (
-        prod.groupby(["uwi", "date"], observed=True)["volume_boe"]
+        prod.groupby(cles, observed=True)["volume_boe"]
         .sum()
         .reset_index()
     )

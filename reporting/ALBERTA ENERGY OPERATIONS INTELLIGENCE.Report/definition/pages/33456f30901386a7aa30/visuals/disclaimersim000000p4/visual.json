@@ -3,9 +3,9 @@
   "name": "disclaimersim000000p4",
   "position": {
     "x": 32,
-    "y": 676,
+    "y": 672,
     "z": 15000,
-    "height": 34,
+    "height": 40,
     "width": 1216,
     "tabOrder": 20000
   },
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Operating costs simulated. Production, wells and prices are official filings; emissions from declared fuel, vent and flare volumes; revenue estimated.   ·   Coûts opératoires simulés. Production, puits et prix officiels ; émissions depuis les volumes déclarés de gaz consommé, évacué et torché ; revenu estimé.",
+                    "value": "Operating costs simulated. Production, wells, prices and emissions come from official filings; revenue estimated.   ·   Coûts opératoires simulés. Production, puits, prix et émissions issus de déclarations officielles ; revenu estimé.",
                     "textStyle": {
                       "fontSize": "8pt",
                       "color": "#7B8D9C",

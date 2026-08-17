@@ -1,12 +1,12 @@
 # Alberta Energy Operations Intelligence
 
-End-to-end analytics on Alberta's oil and gas basin, built entirely from public
-regulatory data: Petrinex production filings and the AER well register, ingested,
-modelled into a star schema, and reported in Power BI.
+End-to-end analytics on Alberta's oil and gas basin, built from public data: Petrinex
+production filings, the AER well register, and Government of Alberta and Bank of Canada
+price series — ingested, modelled into a star schema, and reported in Power BI.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![dbt](https://img.shields.io/badge/dbt-1.11-FF694B?logo=dbt&logoColor=white)
-![DuckDB](https://img.shields.io/badge/DuckDB-1.10-FFF000?logo=duckdb&logoColor=black)
+![DuckDB](https://img.shields.io/badge/DuckDB-1.5-FFF000?logo=duckdb&logoColor=black)
 ![Power BI](https://img.shields.io/badge/Power%20BI-PBIP-F2C811?logo=powerbi&logoColor=black)
 ![Tests](https://img.shields.io/badge/dbt%20build-46%20pass%20%C2%B7%201%20warn%20%C2%B7%200%20error-2E7D32)
 
@@ -20,8 +20,9 @@ modelled into a star schema, and reported in Power BI.
 
 Production volumes, prices and well locations are real. Emissions are computed from the
 fuel, vent and flare volumes operators declare to Petrinex, using NIR annex 6 and AER
-Directive 060 factors — no random draws. Only operating costs are simulated. Full
-assumptions in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#assumed-trade-offs).
+Directive 060 factors — no random draws. Only costs are simulated: operating costs, which
+the report uses, and a capital cost it does not surface. Full assumptions in
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#assumed-trade-offs).
 
 ---
 
@@ -87,8 +88,10 @@ Five pages, one conformed region slicer, row-level security on three roles.
 
 ![Production and wells map](docs/screenshots/p2_production.png)
 
-Every producing well in the province, geolocated from coordinates rebuilt out of the
-Dominion Land Survey, since ST37 ships without lat/lon.
+Producing wells geolocated from coordinates rebuilt out of the Dominion Land Survey,
+since ST37 ships without lat/lon. 99.0% of them resolve; the remaining 1,443 carry a UWI
+the register does not know, and land in the "outside AER register" bucket rather than
+being dropped.
 
 ### Costs and profitability
 
@@ -159,7 +162,7 @@ erDiagram
         string uwi PK
         string region FK
         string operator_name
-        string status "ACTIVE / ABANDONED / SUSPENDED"
+        string status "ABANDONED / ACTIVE / SUSPENDED + 8 rarer, nullable"
         string area
         string field
         string well_type

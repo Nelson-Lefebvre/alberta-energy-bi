@@ -87,8 +87,10 @@ an average rather than a cost.
 Resulting volume-weighted OPEX/boe: **$6.56 for gas, $21.81 for oil, $21.74 for
 condensate**. $14.60 overall.
 
-**CAPEX is illustrative and not calibrated.** It lands near $33k per well against a real
-$2 to 8 million. It is not surfaced in the report.
+**CAPEX is illustrative and not calibrated.** It lands near $135k per producing well
+against a real $2 to 8 million. Spread over the 599,275 wells on the register it would
+read $33k, but CAPEX is only generated for the 148,693 wells that produce, which is the
+only denominator that means anything. It is not surfaced in the report.
 
 ### 3.2 Emissions — script 05
 
@@ -270,8 +272,10 @@ aurait été une moyenne et non un coût.
 OPEX/boe pondéré obtenu : **6,56 $ pour le gaz, 21,81 $ pour le pétrole, 21,74 $ pour le
 condensat**. Au global 14,60 $.
 
-**Le CAPEX est illustratif et non calibré.** Il tombe autour de 33 k$ par puits contre 2 à
-8 M$ réels. Il n'apparaît nulle part dans le rapport, et sa mesure DAX a été retirée du
+**Le CAPEX est illustratif et non calibré.** Il tombe autour de 135 k$ par puits
+producteur contre 2 à 8 M$ réels. Rapporté aux 599 275 puits du registre il ne ferait que
+33 k$, mais le CAPEX n'est généré que pour les 148 693 puits qui produisent : c'est le
+seul dénominateur qui ait un sens. Il n'apparaît nulle part dans le rapport, et sa mesure DAX a été retirée du
 modèle sémantique.
 
 ### 3.2 Émissions — script 05

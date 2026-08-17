@@ -109,10 +109,11 @@ carbon intensity respond to an operator, status or product filter.
 
 ## Tests
 
-`dbt build` returns **42 pass, 1 warn, 0 error** across 43 nodes.
+`dbt build` returns **46 pass, 1 warn, 0 error** across 47 nodes — 11 models and 36 tests.
+`dbt test` alone returns 35 pass, 1 warn, 0 error.
 
-Beyond the structural tests (`not_null`, `unique`, `accepted_values`, `relationships`),
-four singular tests check whether the numbers can be true:
+Beyond the 28 structural tests (`not_null`, `unique`, `accepted_values`, `relationships`),
+eight singular tests check whether the numbers can be true:
 
 | Test | What it checks |
 |---|---|

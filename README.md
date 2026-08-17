@@ -8,7 +8,7 @@ modelled into a star schema, and reported in Power BI.
 ![dbt](https://img.shields.io/badge/dbt-1.11-FF694B?logo=dbt&logoColor=white)
 ![DuckDB](https://img.shields.io/badge/DuckDB-1.10-FFF000?logo=duckdb&logoColor=black)
 ![Power BI](https://img.shields.io/badge/Power%20BI-PBIP-F2C811?logo=powerbi&logoColor=black)
-![Tests](https://img.shields.io/badge/dbt%20build-46%20pass%20%C2%B7%200%20error-2E7D32)
+![Tests](https://img.shields.io/badge/dbt%20build-46%20pass%20%C2%B7%201%20warn%20%C2%B7%200%20error-2E7D32)
 
 ![Executive summary page of the Power BI report](docs/screenshots/p1_executive.png)
 
@@ -27,7 +27,7 @@ assumptions in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#assumed-trade-offs)
 
 ## The problem worth talking about
 
-The pipeline produced credible numbers and 39 dbt tests were green. Two of those numbers
+The pipeline produced credible numbers and 28 dbt tests were green. Two of those numbers
 were wrong, and finding out why is the part of this project I'd defend hardest.
 
 OPEX per barrel ranged from **$4.03 to $14.52** across regions. That looks like a real
@@ -232,7 +232,7 @@ have no production — 75% of it — and 278,554 of those are already abandoned.
 liability is a live financial and political issue in Alberta, the data is already in the
 model, and it's the one genuinely non-simulated finding here that I haven't used.
 
-CAPEX needs recalibrating: it lands near $33k per well against a real $2 to 8 million,
+CAPEX needs recalibrating: it lands near $135k per producing well against a real $2 to 8 million,
 and it isn't surfaced anywhere yet. Data stops at June 2026 and refresh isn't
 automated. Two pages still expose UWI slicers with 599k values, which needs a search
 control instead.

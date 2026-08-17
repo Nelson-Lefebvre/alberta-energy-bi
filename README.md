@@ -149,6 +149,7 @@ erDiagram
         int    annee
         int    trimestre
         int    mois
+        string mois_nom
         bool   is_hiver
     }
     dim_region {
@@ -159,6 +160,7 @@ erDiagram
         string region FK
         string operator_name
         string status "ACTIVE / ABANDONED / SUSPENDED"
+        string area
         string field
         string well_type
         date   spud_date
@@ -173,9 +175,11 @@ erDiagram
         double volume_boe
         double volume_brut
         double wcs_cad "price denormalised, no dim_prix"
-        double revenu_estime_cad "liquids only"
-        double opex_cad "allocated pro rata"
+        double gaz_cad_gj "Alberta reference price"
+        double revenu_estime_cad "all three products"
+        double opex_cad "allocated pro rata, rate by product"
         double co2_tonnes "allocated pro rata"
+        double co2eq_tonnes "CO2 + CH4 x 28, allocated"
         double production_cumulative_boe
     }
     fact_kpis_mensuels {
@@ -223,8 +227,8 @@ regenerate it with `dbt docs generate && dbt docs serve` from `dbt_project/energ
 
 ## What I'd do next
 
-The **inactive well inventory** is the piece I want most. 450,582 wells with no
-production, 278,554 of them already abandoned, which is 75% of the register. Reclamation
+The **inactive well inventory** is the piece I want most. 450,583 wells on the register
+have no production — 75% of it — and 278,554 of those are already abandoned. Reclamation
 liability is a live financial and political issue in Alberta, the data is already in the
 model, and it's the one genuinely non-simulated finding here that I haven't used.
 

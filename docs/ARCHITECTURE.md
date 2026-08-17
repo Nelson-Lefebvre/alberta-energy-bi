@@ -84,7 +84,7 @@ it cannot drift out of date the way an exported image does. Column list per tabl
 | `dim_date` | month | `date_key` PK, `date`, `annee`, `trimestre`, `mois`, `mois_nom`, `is_hiver` |
 | `dim_region` | region | `region` PK |
 | `dim_puits` | well | `uwi` PK, `region` FK, `operator_name`, `area`, `field`, `well_type`, `status`, `spud_date`, `latitude`, `longitude` |
-| `fact_production_enriched` | well × month × product | `date_key` FK, `uwi` FK, `product_type`, `activity_type`, `volume_boe`, `volume_brut`, `wcs_cad`, `revenu_estime_cad`, `opex_cad`, `co2_tonnes`, `production_cumulative_boe` |
+| `fact_production_enriched` | well × month × product | `date_key` FK, `uwi` FK, `product_type`, `activity_type`, `volume_boe`, `volume_brut`, `wcs_cad`, `gaz_cad_gj`, `revenu_estime_cad`, `opex_cad`, `co2_tonnes`, `co2eq_tonnes`, `production_cumulative_boe` |
 | `fact_kpis_mensuels` | month × region | `date_key` FK, `region` FK, `production_boe`, `revenu_estime_cad`, `opex_total_cad`, `capex_total_cad`, `co2_tonnes`, `opex_par_boe`, `intensite_carbone` |
 | `fact_emissions_scope` | month × region × scope | `date_key` FK, `region` FK, `scope`, `co2_tonnes`, `ch4_tonnes`, `co2eq_total` |
 

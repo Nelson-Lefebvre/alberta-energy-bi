@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alberta Energy Operations Intelligence</title>
+  <meta name="description" content="Power BI report on Alberta's oil and gas basin, built from Petrinex, AER, Government of Alberta and Bank of Canada public data.">
+  <style>
+    :root {
+      --bg: #1C1C1F;
+      --bg-out: #161618;
+      --panel: #26262A;
+      --line: #2E2E33;
+      --fg: #ECECEE;
+      --fg-2: #B6B6BB;
+      --fg-3: #7C7C82;
+      --accent: #F2A93B;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg-out);
+      color: var(--fg);
+      font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 16px 48px; }
+    header h1 { margin: 0 0 4px; font-weight: 600; font-size: clamp(22px, 3.2vw, 32px); letter-spacing: .02em; }
+    header p { margin: 0; color: var(--fg-2); max-width: 780px; }
+    header a { color: var(--accent); }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+      margin: 24px 0;
+    }
+    .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+    .kpi b { display: block; color: var(--accent); font-size: 20px; font-weight: 300; }
+    .kpi span { color: var(--fg-3); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+    .tabs button {
+      background: var(--panel); color: var(--fg-2); border: 1px solid var(--line);
+      border-radius: 4px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer;
+    }
+    .tabs button[aria-selected="true"] { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+    .frame { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+    .frame img { display: block; width: 100%; height: auto; }
+    .frame iframe { display: block; width: 100%; aspect-ratio: 16 / 9.6; border: 0; }
+    footer { margin-top: 24px; color: var(--fg-3); font-size: 13px; }
+    footer a { color: var(--fg-2); }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>ALBERTA ENERGY OPERATIONS INTELLIGENCE</h1>
+    <p>Production, costs, emissions and forecast for Alberta's oil and gas basin, built from
+      Petrinex filings, the AER well register and public price series. Pipeline: Python &rarr;
+      DuckDB &rarr; dbt &rarr; Power BI. <a href="https://github.com/Nelson-Lefebvre/alberta-energy-bi">Source on GitHub</a>.</p>
+  </header>
+
+  <section class="kpis">
+    <div class="kpi"><b>3.55 Bn</b><span>boe produced</span></div>
+    <div class="kpi"><b>148,693</b><span>producing wells</span></div>
+    <div class="kpi"><b>3,016</b><span>operators</span></div>
+    <div class="kpi"><b>CAD 167.3 Bn</b><span>revenue</span></div>
+    <div class="kpi"><b>$14.60</b><span>OPEX / barrel</span></div>
+    <div class="kpi"><b>91.2 Mt</b><span>Scope 1 CO&#8322;</span></div>
+  </section>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <div class="frame" id="view"></div>
+
+  <footer>
+    Production volumes, prices and well locations are real. Operating costs are simulated;
+    see <a href="https://github.com/Nelson-Lefebvre/alberta-energy-bi/blob/main/docs/ARCHITECTURE.md">ARCHITECTURE.md</a>.
+  </footer>
+</main>
+
+<script>
+  // Paste the Power BI "Publish to web" embed URL here to add an interactive tab.
+  // (Power BI Service > File > Embed report > Publish to web (public) > copy the src of the iframe)
+  const POWERBI_EMBED_URL = "";
+
+  const pages = [
+    { label: "Executive Summary", img: "screenshots/p1_executive.png" },
+    { label: "Production", img: "screenshots/p2_production.png" },
+    { label: "Cost & Financial", img: "screenshots/p3_costs.png" },
+    { label: "ESG & Carbon", img: "screenshots/p4_esg.png" },
+    { label: "Forecast", img: "screenshots/p5_forecast.png" },
+  ];
+  if (POWERBI_EMBED_URL) pages.unshift({ label: "Interactive report", embed: POWERBI_EMBED_URL });
+
+  const tabs = document.getElementById("tabs");
+  const view = document.getElementById("view");
+
+  function show(i) {
+    const p = pages[i];
+    [...tabs.children].forEach((b, j) => b.setAttribute("aria-selected", j === i));
+    view.innerHTML = p.embed
+      ? `<iframe title="${p.label}" src="${p.embed}" allowfullscreen></iframe>`
+      : `<img src="${p.img}" alt="${p.label} page of the Power BI report">`;
+  }
+
+  pages.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.role = "tab";
+    b.textContent = p.label;
+    b.onclick = () => show(i);
+    tabs.appendChild(b);
+  });
+  show(0);
+</script>
+</body>
+</html>

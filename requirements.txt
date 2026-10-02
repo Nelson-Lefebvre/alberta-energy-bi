@@ -10,4 +10,5 @@ python-dateutil==2.9.0.post0
 # Transformation
 dbt-core==1.11.11
 dbt-duckdb==1.10.1
+dbt-databricks==1.12.5
 duckdb==1.5.3

@@ -1,7 +1,13 @@
-/// Absolute path to the DuckDB file produced by `dbt build`.
-/// Point it at your own clone: Home > Transform data > Manage parameters.
-expression DuckDBPath = "C:\alberta-energy-bi\data\energy.duckdb" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: 0a04a3b6-f7fb-4a03-b8f7-4d2ff62a9c12
+/// Server hostname of the Databricks SQL warehouse, without https://.
+/// SQL Warehouses > Serverless Starter Warehouse > Connection details.
+expression DatabricksHost = "dbc-78e36d0f-1115.cloud.databricks.com" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 3c9e7f52-6a1d-4b8e-9f20-7d4a5b1c8e63
+
+	annotation PBI_ResultType = Text
+
+/// HTTP path of the same warehouse (Connection details).
+expression DatabricksHttpPath = "/sql/1.0/warehouses/da2eb554bbbe0bdb" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8b2d4e6f-1a3c-4d5e-8f7a-9b0c1d2e3f40
 
 	annotation PBI_ResultType = Text
 

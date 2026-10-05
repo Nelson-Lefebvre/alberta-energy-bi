@@ -1,0 +1,43 @@
+# databricks.yml : racine du bundle.
+# Le bundle décrit en code ce que l'UI créerait à la main (ici, le Job) et
+# l'envoie dans le workspace avec `databricks bundle deploy`.
+bundle:
+  name: alberta_energy_bi
+
+include:
+  - resources/*.yml
+
+# Le deploy copie les fichiers du repo dans le workspace. .gitignore est respecté :
+# data/, profiles.yml, target/ et .venv/ ne partent pas. On exclut en plus ce qui
+# ne sert pas au Job.
+sync:
+  exclude:
+    - .claude/**
+    - .venv.old/**
+    - airflow_dags/**
+    - docs/**
+    - reporting/**
+
+variables:
+  warehouse_id:
+    description: "Seul SQL warehouse du Free Edition, retrouvé par son nom."
+    lookup:
+      warehouse: "Serverless Starter Warehouse"
+  landing:
+    description: "Racine des données du Job : contient raw/ et processed/."
+    default: /Volumes/workspace/alberta_bronze/landing
+  notification_email:
+    description: "Destinataire des alertes d'échec. Valeur hors repo : .databricks/bundle/<target>/variable-overrides.json"
+
+targets:
+  # Pour itérer : ressources préfixées « [dev <toi>] », planning en pause.
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-78e36d0f-1115.cloud.databricks.com
+
+  # Pour exploiter : noms tels quels, cron mensuel actif.
+  prod:
+    workspace:
+      host: https://dbc-78e36d0f-1115.cloud.databricks.com

@@ -23,6 +23,10 @@ dbt_project/energy_analytics/dbt_packages/
 # Desktop's local cache and per-machine editor settings
 **/.pbi/
 
+# Databricks bundle: local deployment state, and variable-overrides.json, which
+# holds the notification email and must stay out of a public repository
+.databricks/
+
 # IDE and editor settings are personal, not project configuration
 .idea/
 .vscode/

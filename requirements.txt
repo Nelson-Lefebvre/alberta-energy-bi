@@ -9,6 +9,8 @@ python-dateutil==2.9.0.post0
 
 # Transformation
 dbt-core==1.11.11
-dbt-duckdb==1.10.1
 dbt-databricks==1.12.5
+
+# Optional: local DuckDB target, for offline testing only (see docs/ARCHITECTURE.md)
+dbt-duckdb==1.10.1
 duckdb==1.5.3

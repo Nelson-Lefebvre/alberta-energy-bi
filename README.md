@@ -2,11 +2,12 @@
 
 End-to-end analytics on Alberta's oil and gas basin, built from public data: Petrinex
 production filings, the AER well register, and Government of Alberta and Bank of Canada
-price series — ingested, modelled into a star schema, and reported in Power BI.
+price series — ingested and modelled on Databricks into a star schema, refreshed by a
+monthly job, and reported in Power BI.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Databricks](https://img.shields.io/badge/Databricks-Unity%20Catalog%20%C2%B7%20Delta-FF3621?logo=databricks&logoColor=white)
 ![dbt](https://img.shields.io/badge/dbt-1.11-FF694B?logo=dbt&logoColor=white)
-![DuckDB](https://img.shields.io/badge/DuckDB-1.5-FFF000?logo=duckdb&logoColor=black)
 ![Power BI](https://img.shields.io/badge/Power%20BI-PBIP-F2C811?logo=powerbi&logoColor=black)
 ![Tests](https://img.shields.io/badge/dbt%20build-46%20pass%20%C2%B7%201%20warn%20%C2%B7%200%20error-2E7D32)
 
@@ -22,7 +23,8 @@ Production volumes, prices and well locations are real. Emissions are computed f
 fuel, vent and flare volumes operators declare to Petrinex, using NIR annex 6 and AER
 Directive 060 factors — no random draws. Only costs are simulated: operating costs, which
 the report uses, and a capital cost it does not surface. Full assumptions in
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#assumed-trade-offs).
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#assumed-trade-offs). Figures above are the
+June 2026 snapshot; the monthly job moves the 24-month window forward.
 
 ---
 
@@ -80,6 +82,56 @@ because the tables were valid and the total stayed plausible.
 
 ---
 
+## Moving it to Databricks
+
+The first version ran on a laptop: Python scripts wrote Parquet, dbt built a DuckDB file,
+Power BI read it over ODBC, and every refresh was a manual decision. It now runs on
+Databricks Free Edition. The rule I set for the move was that it could change *where*
+things run and nothing about *what* they compute.
+
+```mermaid
+%%{init: {'theme':'base','themeVariables':{
+  'primaryColor':'#EEF3F8','primaryBorderColor':'#2C7FC4','primaryTextColor':'#10263A',
+  'lineColor':'#7B8D9C','fontFamily':'Segoe UI, system-ui, sans-serif','fontSize':'13px'}}}%%
+flowchart LR
+    src["Petrinex · AER ST37<br/>Alberta prices · Bank of Canada"]
+    subgraph dbx["Databricks job · 15th of each month, 6 a.m. Edmonton"]
+        py["Python scripts 00–05<br/>serverless tasks"]
+        vol[("Unity Catalog volume<br/>raw files + Parquet")]
+        brz["bronze<br/>5 Delta tables"]
+        slv["silver<br/>dbt staging views"]
+        gld["gold<br/>6 dbt marts"]
+        py --> vol
+        vol -- "read_files()" --> brz
+        brz --> slv --> gld
+    end
+    pbi["Power BI<br/>27 DAX measures, RLS"]
+    src --> py
+    gld --> pbi
+```
+
+**Proving nothing changed.** The scripts only gained a `--data-dir` flag, and reproduce
+the previous Parquet exactly (`assert_frame_equal`). The first bronze load reused those
+files, so both engines saw identical inputs: a fingerprint query over the six marts
+returns the same row counts and control totals, and `dbt build` ends as it did locally,
+46 pass, 1 warn, 0 error. The SQL dialect cost four small edits.
+
+**A bug only a scheduler would expose.** When every Petrinex download failed, the
+ingestion script logged it and exited with code 0. Run by hand, someone reads the log.
+Under a scheduler, the job would have republished last month's figures with every task
+green. It now exits non-zero, so the run stops and the failure email goes out.
+
+**Orchestration as code.** The job is declared in a bundle (`databricks.yml`,
+`resources/`) and deployed with the Databricks CLI: eight serverless tasks, pinned library
+versions, retries only where a task downloads. Every write is a Delta `CREATE OR REPLACE`,
+so a failed run leaves last month's tables readable and the report never sees a
+half-built one.
+
+**The report did not move.** Power BI now reads the gold schema through the Databricks
+connector; measures, RLS roles and visuals are unchanged.
+
+---
+
 ## The report
 
 Five pages, one conformed region slicer, row-level security on three roles.
@@ -129,7 +181,11 @@ coefficient of variation of 5.2%.
 names, so the hard part is UWI reconstruction, a DLS to lat/lon conversion, and joins
 back to the Petrinex reference files. **99.0% coverage** against the production data.
 
-**Modelling.** dbt Core on DuckDB. Three facts, three dimensions, and a conformed
+**Platform.** Databricks Free Edition: a Unity Catalog volume for files, then three
+schemas, `alberta_bronze`, `alberta_silver` and `alberta_gold`, in Delta. One job runs the
+whole chain on serverless compute; dbt and Power BI both use the SQL warehouse.
+
+**Modelling.** dbt Core on Databricks SQL. Three facts, three dimensions, and a conformed
 `dim_region` that all three facts share. Without it a region slicer filters one fact and
 silently leaves the others alone.
 
@@ -236,9 +292,15 @@ liability is a live financial and political issue in Alberta, the data is alread
 model, and it's the one genuinely non-simulated finding here that I haven't used.
 
 CAPEX needs recalibrating: it lands near $135k per producing well against a real $2 to 8 million,
-and it isn't surfaced anywhere yet. Data stops at June 2026 and refresh isn't
-automated. Two pages still expose UWI slicers with 599k values, which needs a search
-control instead.
+and it isn't surfaced anywhere yet. Two pages still expose UWI slicers with 599k values,
+which needs a search control instead.
+
+On the platform side, the report is still refreshed from Power BI Desktop. Next is to
+publish it to the Power BI Service and trigger the dataset refresh from a final job task,
+so the report updates as soon as gold does rather than on a guessed timer. Bronze also
+rewrites the 24-month window on every run, so a Petrinex revision overwrites the figure it
+corrects; loading each month with `COPY INTO` would keep every published version. A CI
+check running `databricks bundle validate` on pull requests is the last gap.
 
 ---
 

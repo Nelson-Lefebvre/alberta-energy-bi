@@ -3,6 +3,11 @@
 __pycache__/
 .env
 
+# Secrets. A token file in the working tree is also uploaded by `databricks bundle
+# deploy` unless it is ignored here, since bundle sync follows .gitignore.
+databricks-token.txt
+*.token
+
 # Data: raw downloads, intermediate Parquet/CSV and the DuckDB file are all
 # rebuilt by the pipeline, so none of it belongs in the repository.
 data/raw/*

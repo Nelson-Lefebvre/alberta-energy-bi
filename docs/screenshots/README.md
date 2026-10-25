@@ -18,8 +18,9 @@ imposés — le README pointe dessus en dur :
 
 ## Procédure
 
-1. Ouvrir `reporting/` dans Power BI Desktop (projet **PBIP**, pas un `.pbix` — voir §8
-   du README principal) et laisser le modèle se rafraîchir depuis `data/energy.duckdb`.
+1. Ouvrir `reporting/` dans Power BI Desktop (projet **PBIP**, pas un `.pbix` — voir la
+   partie *Reporting* du README principal) et laisser le modèle se rafraîchir depuis les
+   tables gold de Databricks (paramètres `DatabricksHost` et `DatabricksHttpPath`).
 2. Se placer sur la page, **retirer toute sélection de slicer** (les captures doivent
    montrer l'état non filtré, sinon les KPI de la capture ne correspondent plus aux
    chiffres annoncés dans le README).

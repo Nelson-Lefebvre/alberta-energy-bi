@@ -13,19 +13,31 @@ Technical detail behind [the project README](../README.md).
         │             │                │               │
         ▼             ▼                ▼               ▼
  ┌──────────────────────────────────────────────────────────────┐
- │  Python (scripts 01 to 05) → Parquet in data/processed/       │
- │  pandas · numpy · requests · pyarrow                          │
+ │  Python (scripts 00 to 05), serverless job tasks              │
+ │  → Unity Catalog volume  /Volumes/workspace/alberta_bronze/   │
+ │    landing/{raw,processed}                                    │
  └───────────────────────────┬──────────────────────────────────┘
-                             ▼
+                             ▼  read_files(), SQL task
  ┌──────────────────────────────────────────────────────────────┐
- │  dbt Core + DuckDB   (staging → marts, tests, lineage)        │
- │  data/energy.duckdb                                           │
+ │  Bronze: 5 Delta tables, workspace.alberta_bronze             │
  └───────────────────────────┬──────────────────────────────────┘
-                             ▼
+                             ▼  dbt build, SQL warehouse
  ┌──────────────────────────────────────────────────────────────┐
- │  Power BI Desktop, PBIP  (star, 27 DAX measures, RLS)         │
+ │  dbt Core + dbt-databricks   (staging → marts, tests)         │
+ │  Silver: views, workspace.alberta_silver                      │
+ │  Gold:   tables, workspace.alberta_gold                       │
+ └───────────────────────────┬──────────────────────────────────┘
+                             ▼  Databricks connector, PAT
+ ┌──────────────────────────────────────────────────────────────┐
+ │  Power BI, PBIP  (star, 27 DAX measures, RLS)                 │
  └──────────────────────────────────────────────────────────────┘
 ```
+
+Everything inside the volume and the three schemas runs on Databricks Free Edition, as a
+single job: `alberta_energy_refresh`, on the 15th of each month at 6 a.m., Edmonton time.
+The first version of the project ran the same chain on a laptop with DuckDB; the
+[Databricks section](#databricks) below covers what changed and what deliberately did
+not.
 
 ## Sources
 
@@ -62,6 +74,7 @@ definition. It does not grant any right over the source data.
 
 | Script | Output | What it does |
 |---|---|---|
+| `00_download_raw.py` | `raw/` files | ST37 register and the two Petrinex reference files |
 | `01_ingest_petrinex.py` | `petrinex24.parquet` | Parallel download, nested unzip, cleaning, BOE conversion |
 | `02_ingest_aer_wells.py` | `dim_puits.parquet` | ST37 parsing, UWI reconstruction, DLS to lat/lon, reference joins |
 | `03_ingest_prices.py` | `dim_prix.parquet` | WTI plus USD/CAD into a monthly WCS in CAD |
@@ -71,7 +84,12 @@ definition. It does not grant any right over the source data.
 `production_universe.py` holds the scope shared by scripts 04 and 05: the gas unit
 correction and the commercialised-production filter, matched to the dbt mart.
 
-ST37 to Petrinex UWI coverage is **99.0%**, with 1,426 producing wells falling outside
+`_paths.py` resolves the data root for every script. By default it is `data/` in the
+repository; `--data-dir` points it elsewhere, which is how the job sends the same files
+to the Unity Catalog volume. `--no-csv` skips the CSV copies, which nothing reads on
+Databricks.
+
+ST37 to Petrinex UWI coverage is **99.0%**, with 1,443 producing wells falling outside
 the register.
 
 ## Data model
@@ -100,7 +118,7 @@ are not related to each other, so a slicer sitting on one fact's own region colu
 filters that fact and nothing else. Report pages filter `dim_region[region]`, which
 reaches both branches.
 
-**`fact_production_enriched`** is 4,342,506 rows at well × month × product, carrying
+**`fact_production_enriched`** is 4,338,069 rows at well × month × product, carrying
 volume, revenue, OPEX and CO₂. The last two are allocated pro rata by volume from the
 (well, month) simulation. The allocation is exact rather than approximate: the scripts
 compute `opex = rate × volume` with the rate held constant over a pair, so redistributing
@@ -110,7 +128,8 @@ carbon intensity respond to an operator, status or product filter.
 ## Tests
 
 `dbt build` returns **46 pass, 1 warn, 0 error** across 47 nodes — 11 models and 36 tests.
-`dbt test` alone returns 35 pass, 1 warn, 0 error.
+`dbt test` alone returns 35 pass, 1 warn, 0 error. The result is the same on Databricks SQL
+as it was on DuckDB, warning included.
 
 Beyond the 28 structural tests (`not_null`, `unique`, `accepted_values`, `relationships`),
 eight singular tests check whether the numbers can be true:
@@ -167,65 +186,117 @@ Every ratio takes numerator and denominator from the same fact. A ratio whose tw
 sit at different grains freezes silently the moment someone applies a slicer only one
 side can see, and it does not look broken while it happens.
 
+## Databricks
+
+The project runs on Databricks Free Edition, which shapes several choices: serverless
+compute only, a single 2X-Small SQL warehouse, a daily usage quota, and outbound internet
+limited to a list of trusted domains that Databricks does not publish.
+
+| Layer | Unity Catalog object | Written by |
+|---|---|---|
+| Files | volume `workspace.alberta_bronze.landing` (`raw/`, `processed/`) | scripts 00 to 05 |
+| Bronze | 5 Delta tables in `workspace.alberta_bronze` | `sql/load_bronze.sql` (`read_files`) |
+| Silver | 5 `stg_*` views in `workspace.alberta_silver` | dbt staging |
+| Gold | 6 Delta tables in `workspace.alberta_gold` | dbt marts |
+
+**The job.** `resources/alberta_energy.job.yml` declares eight tasks with the dependencies
+the scripts already had: `download_raw` and `ingest_petrinex` first, then the wells, prices
+and emissions, then costs, then `load_bronze` and `dbt_build`. Only the three tasks that
+download are retried, twice, five minutes apart: a network error clears on retry, a data
+error or a failing test does not. `max_concurrent_runs: 1` stops two runs writing to the
+same volume. A failure sends an email; the address lives in a gitignored
+`.databricks/bundle/<target>/variable-overrides.json`, not in the repository.
+
+**Pinned environments.** Serverless environment 5 ships pandas 2.2.3. The job pins pandas
+3.0.3, numpy 2.4.6 and pyarrow 24.0.0, the versions that produced the published figures,
+and pins `dbt-core` 1.11.11 next to `dbt-databricks` 1.12.5. Without the `dbt-core` pin,
+pip resolves 1.12 in the job while the local build runs 1.11.
+
+**Failure semantics.** Every bronze table and every mart is written with
+`CREATE OR REPLACE`, which Delta commits atomically. A run that fails part-way leaves the
+previous version of each table readable, so Power BI never sees a half-built month. Older
+versions stay queryable with `DESCRIBE HISTORY` and `VERSION AS OF`.
+
+**What the dialect cost.** Four changes, all in the marts: `sequence`/`explode` in
+place of `generate_series`/`unnest` in `dim_date`, `date_format(date, 'MMMM')` in place of
+`monthname`, `string` in place of `varchar` in `dim_puits`, and explicit aliases on two
+subqueries. `macros/generate_schema_name.sql` keeps the `+schema` names as declared,
+instead of dbt's default `alberta_gold_alberta_silver`. The SQL warehouse runs in ANSI
+mode, where a division by zero raises an error; every ratio was already guarded with
+`nullif` or a `case`.
+
+**Proof of equivalence.** The first bronze load used the Parquet files that had fed DuckDB,
+not a fresh download. A fingerprint query, with row counts and control totals for the six
+marts, then returned identical figures on both engines.
+
 ## Running it
 
+Prerequisites: a Databricks workspace (Free Edition is enough), the Databricks CLI
+(`winget install Databricks.DatabricksCLI`), a personal access token, and Python 3.11
+with `requirements.txt` for local runs.
+
+The CLI and dbt read the same three environment variables. Set them in each session; the
+token comes from the clipboard, so it never appears on screen or in a file:
+
 ```powershell
-# 1. Environment
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-
-# 2. Raw files script 02 reads. Scripts 01 and 03 fetch their own.
-mkdir data\raw
-curl -o data\raw\ST37.zip        https://static.aer.ca/prd/documents/sts/st37/ST37.zip
-curl -o data\raw\ba_codes.csv    https://www.petrinex.gov.ab.ca/bbreports/PRABAIdentifiers.csv
-curl -o data\raw\field_codes.csv https://www.petrinex.gov.ab.ca/bbreports/PRAFieldCodes.csv
-
-# 3. Python pipeline, in this order
-python scripts\01_ingest_petrinex.py
-python scripts\02_ingest_aer_wells.py
-python scripts\03_ingest_prices.py
-python scripts\04_generate_costs.py
-python scripts\05_generate_emissions.py
-
-# 4. dbt
-cd dbt_project\energy_analytics
-dbt build --profiles-dir .
-dbt docs generate --profiles-dir .
-
-# 5. Open the reporting\ folder in Power BI Desktop,
-#    set the DuckDBPath parameter to your own clone, then Refresh
+$env:DATABRICKS_HOST      = "https://<workspace>.cloud.databricks.com"
+$env:DATABRICKS_HTTP_PATH = "/sql/1.0/warehouses/<warehouse-id>"
+$env:DATABRICKS_TOKEN     = (Get-Clipboard -Raw).Trim()   # token copied beforehand
+databricks current-user me
 ```
 
-`profiles.yml` is not versioned because it holds a machine path. Create one in
+```powershell
+# 1. Unity Catalog, once: run sql/setup_unity_catalog.sql in the SQL editor
+
+# 2. Deploy the job, then run it (the schedule takes over afterwards)
+databricks bundle validate -t prod
+databricks bundle deploy -t prod
+databricks bundle run -t prod alberta_energy_refresh
+
+# 3. Power BI: open reporting\ in Power BI Desktop, set the DatabricksHost and
+#    DatabricksHttpPath parameters, sign in with "Personal access token", Refresh
+```
+
+`databricks.yml` holds the workspace host and finds the warehouse by its name, `Serverless
+Starter Warehouse`, so no warehouse ID is hard-coded in the bundle.
+
+For local work, the scripts still run on a laptop and write to `data/`. dbt runs against
+the SQL warehouse with a profile that is not versioned. Create it in
 `dbt_project/energy_analytics/`:
 
 ```yaml
 energy_analytics:
-  target: dev
+  target: databricks
   outputs:
-    dev:
-      type: duckdb
-      path: "../../data/energy.duckdb"
+    databricks:
+      type: databricks
+      catalog: workspace
+      schema: alberta_gold
+      host: "{{ env_var('DATABRICKS_HOST') | replace('https://', '') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
       threads: 4
 ```
 
-Two things bite on a fresh clone. Staging views read the Parquet files by relative path,
-so dbt has to run from `dbt_project/energy_analytics`. And the semantic model needs to be
-told where the database is: the six M partitions all read one shared parameter,
-`DuckDBPath`, declared in `SemanticModel/definition/expressions.tmdl`. Set it once under
-**Home > Transform data > Manage parameters**, or edit that one line before opening the
-project.
-
-Its default is `C:\alberta-energy-bi\data\energy.duckdb` rather than a path under a home
-directory, because Power BI Desktop writes the parameter value back into
-`expressions.tmdl` on save. A machine-specific default would land in every commit. On
-Windows the cheapest way to make that default true is a directory junction, which needs
-no elevation:
-
 ```powershell
-New-Item -ItemType Junction -Path "C:\alberta-energy-bi" -Target "<your clone>"
+cd dbt_project\energy_analytics
+dbt build --profiles-dir .
 ```
+
+The project started on DuckDB, and `dbt-duckdb` stays in `requirements.txt` for that
+reason: a second `dev` output with `type: duckdb` and `path: ../../data/energy.duckdb`
+builds the same models offline, without spending the Free Edition quota. It is a local
+test bench only; the published figures come from Databricks.
+
+Two things bite on a fresh workspace. The catalog has to be `workspace`, the one Free
+Edition creates; any other name has to change in `sources.yml`, `sql/` and the job. And if
+the job's download tasks cannot reach a source, which is how the trusted-domain list shows
+up, run scripts 00 to 05 locally with `--no-csv`, upload `data/processed/*.parquet` to the
+volume with `databricks fs cp`, then run `sql/load_bronze.sql` and `dbt build`.
+
+Power BI Desktop writes parameter values back into `expressions.tmdl` on save, so the
+workspace host and HTTP path are committed. Neither is a secret: without a token they give
+access to nothing.
 
 ## Simulated figures
 
@@ -249,7 +320,7 @@ Parameters for both are listed in [`DOCUMENTATION.md`](DOCUMENTATION.md).
 
 ## Assumed trade-offs
 
-**Basin view, not operator view.** The data covers all 3,015 operators in the province,
+**Basin view, not operator view.** The data covers all 3,016 operators in the province,
 which is closer to what a regulator or a market analyst looks at than to a single
 company's control room.
 
@@ -262,7 +333,7 @@ liquids-only revenue, which makes it conservative rather than optimistic.
 vented and flared volumes, and shut-in wells are out. Costs, emissions and production
 share that definition.
 
-**1,426 producing wells sit outside the AER register**, roughly 1% of production. They
+**1,443 producing wells sit outside the AER register**, 1.5% of production. They
 are in Petrinex but not in the ST37 extract, and go into a labelled bucket rather than
 being dropped, so totals stay right and the gap stays visible.
 

@@ -12,8 +12,7 @@ include:
 # ne sert pas au Job.
 sync:
   exclude:
-    - .claude/**
-    - .venv.old/**
+    - ".*/**"          # dossiers cachés locaux : ancien venv, réglages d'éditeur
     - airflow_dags/**
     - docs/**
     - reporting/**

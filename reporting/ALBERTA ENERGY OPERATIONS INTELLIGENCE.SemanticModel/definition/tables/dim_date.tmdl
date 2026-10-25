@@ -71,7 +71,8 @@ table dim_date
 		annotation SummarizationSetBy = Automatic
 
 	column is_hiver
-		dataType: string
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
 		lineageTag: caece586-e49a-4b34-9e84-84c91142ab5a
 		summarizeBy: none
 		sourceColumn: is_hiver

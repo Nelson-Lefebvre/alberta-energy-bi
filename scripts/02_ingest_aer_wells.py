@@ -34,6 +34,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+# Databricks lance le fichier sans garantir que son dossier soit dans sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _paths import DATA_DIR, ECRIRE_CSV, PROCESSED_DIR, RAW_DIR  # noqa: E402
+
 # Console Windows (cp1252) : éviter les UnicodeEncodeError sur ∩, é, etc.
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -41,15 +46,14 @@ except (AttributeError, ValueError):
     pass
 
 # --------------------------------------------------------------------------- #
-# Chemins ancrés sur la racine du projet
+# Chemins : data/ en local, Volume Unity Catalog sur Databricks (voir _paths.py)
 # --------------------------------------------------------------------------- #
-ROOT = Path(__file__).resolve().parent.parent
-ST37_ZIP = ROOT / "data" / "raw" / "ST37.zip"
-BA_CSV = ROOT / "data" / "raw" / "ba_codes.csv"
-FIELD_CSV = ROOT / "data" / "raw" / "field_codes.csv"
-OUT_PARQUET = ROOT / "data" / "processed" / "dim_puits.parquet"
-OUT_CSV = ROOT / "data" / "processed" / "dim_puits.csv"
-PETRINEX_PARQUET = ROOT / "data" / "processed" / "petrinex24.parquet"
+ST37_ZIP = RAW_DIR / "ST37.zip"
+BA_CSV = RAW_DIR / "ba_codes.csv"
+FIELD_CSV = RAW_DIR / "field_codes.csv"
+OUT_PARQUET = PROCESSED_DIR / "dim_puits.parquet"
+OUT_CSV = PROCESSED_DIR / "dim_puits.csv"
+PETRINEX_PARQUET = PROCESSED_DIR / "petrinex24.parquet"
 
 FINAL_COLUMNS = [
     "uwi", "operator_name", "area", "region", "field",
@@ -147,7 +151,7 @@ def read_st37() -> pd.DataFrame:
 
 
 def main() -> int:
-    print(f"Racine projet : {ROOT}")
+    print(f"Données : {DATA_DIR}")
     for path in (ST37_ZIP, BA_CSV, FIELD_CSV):
         if not path.exists():
             print(f"[ERREUR] Source absente : {path}", file=sys.stderr)
@@ -249,9 +253,11 @@ def main() -> int:
     df = df[FINAL_COLUMNS]
     OUT_PARQUET.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(OUT_PARQUET, index=False)
-    df.to_csv(OUT_CSV, index=False, encoding="utf-8")
+    if ECRIRE_CSV:
+        df.to_csv(OUT_CSV, index=False, encoding="utf-8")
     print(f"\nÉcrit : {OUT_PARQUET}  ({len(df):,} puits)")
-    print(f"Écrit : {OUT_CSV}")
+    if ECRIRE_CSV:
+        print(f"Écrit : {OUT_CSV}")
 
     # --- Rapport qualité ----------------------------------------------------- #
     print("\nRépartition par région :")

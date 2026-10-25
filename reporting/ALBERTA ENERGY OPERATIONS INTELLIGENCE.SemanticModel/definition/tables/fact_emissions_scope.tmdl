@@ -60,9 +60,9 @@ table fact_emissions_scope
 		mode: import
 		source =
 				let
-				  Source = Odbc.DataSource("Driver={DuckDB Driver};Database=" & DuckDBPath & ";access_mode=READ_ONLY", [HierarchicalNavigation = true]),
-				  #"Navigation 1" = Source{[Name = "energy", Kind = "Database"]}[Data],
-				  #"Navigation 2" = #"Navigation 1"{[Name = "main", Kind = "Schema"]}[Data],
+				  Source = Databricks.Catalogs(DatabricksHost, DatabricksHttpPath, [Catalog = null, Database = null, EnableAutomaticProxyDiscovery = null]),
+				  #"Navigation 1" = Source{[Name = "workspace", Kind = "Database"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Name = "alberta_gold", Kind = "Schema"]}[Data],
 				  #"Navigation 3" = #"Navigation 2"{[Name = "fact_emissions_scope", Kind = "Table"]}[Data]
 				in
 				  #"Navigation 3"

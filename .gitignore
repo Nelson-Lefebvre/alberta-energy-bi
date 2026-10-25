@@ -3,6 +3,11 @@
 __pycache__/
 .env
 
+# Secrets. A token file in the working tree is also uploaded by `databricks bundle
+# deploy` unless it is ignored here, since bundle sync follows .gitignore.
+databricks-token.txt
+*.token
+
 # Data: raw downloads, intermediate Parquet/CSV and the DuckDB file are all
 # rebuilt by the pipeline, so none of it belongs in the repository.
 data/raw/*
@@ -22,6 +27,10 @@ dbt_project/energy_analytics/dbt_packages/
 *.pbix
 # Desktop's local cache and per-machine editor settings
 **/.pbi/
+
+# Databricks bundle: local deployment state, and variable-overrides.json, which
+# holds the notification email and must stay out of a public repository
+.databricks/
 
 # IDE and editor settings are personal, not project configuration
 .idea/

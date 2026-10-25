@@ -1,0 +1,137 @@
+# resources/alberta_energy.job.yml
+# Remplace le DAG Airflow alberta_energy_pipeline : mêmes tâches, mêmes dépendances.
+# Deux ajouts : download_raw (les curl manuels) et load_bronze (Parquet -> Delta).
+#
+#   download_raw ───────────────────┐
+#   ingest_petrinex ─┬─> ingest_aer_wells ─> generate_costs ─┐
+#                    ├─> ingest_prices ──────────────────────┼─> load_bronze ─> dbt_build
+#                    └─> generate_emissions ─────────────────┘
+#
+# Aucune tâche ne déclare de cluster : le Job tourne en serverless, seul compute
+# du Free Edition. Les tâches Python reçoivent leur environnement par environment_key.
+resources:
+  jobs:
+    alberta_energy_refresh:
+      name: alberta_energy_refresh
+      description: "Petrinex, AER, prix -> Volume -> bronze (Delta) -> dbt build (silver, gold)"
+      max_concurrent_runs: 1
+      timeout_seconds: 10800
+
+      # Le 15 de chaque mois à 6 h, heure de l'Alberta. Petrinex publie avec environ
+      # deux mois de retard : chaque run ajoute le mois qui vient de sortir, et tous
+      # les chiffres du rapport bougent. En target dev, le planning est en pause.
+      schedule:
+        quartz_cron_expression: "0 0 6 15 * ?"
+        timezone_id: America/Edmonton
+        pause_status: UNPAUSED
+
+      email_notifications:
+        on_failure:
+          - ${var.notification_email}
+
+      environments:
+        # Mêmes versions que requirements.txt : les chiffres ne dépendent pas du
+        # pandas préinstallé sur serverless (2.2.3 dans la version 5).
+        - environment_key: pipeline
+          spec:
+            environment_version: "5"
+            dependencies:
+              - pandas==3.0.3
+              - numpy==2.4.6
+              - pyarrow==24.0.0
+              - requests==2.31.0
+              - python-dateutil==2.9.0.post0
+        # dbt-core épinglé comme en local : sans lui, pip prendrait la 1.12.
+        - environment_key: dbt
+          spec:
+            environment_version: "5"
+            dependencies:
+              - dbt-core==1.11.11
+              - dbt-databricks==1.12.5
+
+      tasks:
+        # Seules les tâches qui téléchargent sont relancées : une erreur réseau passe,
+        # une erreur de données ou un test dbt rouge ne passera pas en relançant.
+        - task_key: download_raw
+          environment_key: pipeline
+          max_retries: 2
+          min_retry_interval_millis: 300000
+          timeout_seconds: 1800
+          spark_python_task:
+            python_file: ../scripts/00_download_raw.py
+            parameters: ["--data-dir", "${var.landing}", "--no-csv"]
+
+        - task_key: ingest_petrinex
+          environment_key: pipeline
+          max_retries: 2
+          min_retry_interval_millis: 300000
+          timeout_seconds: 3600
+          spark_python_task:
+            python_file: ../scripts/01_ingest_petrinex.py
+            parameters: ["--data-dir", "${var.landing}", "--no-csv"]
+
+        - task_key: ingest_aer_wells
+          depends_on:
+            - task_key: download_raw
+            - task_key: ingest_petrinex
+          environment_key: pipeline
+          timeout_seconds: 3600
+          spark_python_task:
+            python_file: ../scripts/02_ingest_aer_wells.py
+            parameters: ["--data-dir", "${var.landing}", "--no-csv"]
+
+        - task_key: ingest_prices
+          depends_on:
+            - task_key: ingest_petrinex
+          environment_key: pipeline
+          max_retries: 2
+          min_retry_interval_millis: 300000
+          timeout_seconds: 1800
+          spark_python_task:
+            python_file: ../scripts/03_ingest_prices.py
+            parameters: ["--data-dir", "${var.landing}", "--no-csv"]
+
+        - task_key: generate_costs
+          depends_on:
+            - task_key: ingest_aer_wells
+          environment_key: pipeline
+          timeout_seconds: 3600
+          spark_python_task:
+            python_file: ../scripts/04_generate_costs.py
+            parameters: ["--data-dir", "${var.landing}", "--no-csv"]
+
+        - task_key: generate_emissions
+          depends_on:
+            - task_key: ingest_petrinex
+          environment_key: pipeline
+          timeout_seconds: 3600
+          spark_python_task:
+            python_file: ../scripts/05_generate_emissions.py
+            parameters: ["--data-dir", "${var.landing}", "--no-csv"]
+
+        # Le bronze n'est rechargé que si les six scripts ont réussi.
+        - task_key: load_bronze
+          depends_on:
+            - task_key: ingest_prices
+            - task_key: generate_costs
+            - task_key: generate_emissions
+          timeout_seconds: 1800
+          sql_task:
+            file:
+              path: ../sql/load_bronze.sql
+            warehouse_id: ${var.warehouse_id}
+
+        # Databricks génère le profiles.yml à partir du warehouse, du catalogue et
+        # du schéma ci-dessous : le profiles.yml local, gitignoré, ne part pas.
+        - task_key: dbt_build
+          depends_on:
+            - task_key: load_bronze
+          environment_key: dbt
+          timeout_seconds: 3600
+          dbt_task:
+            project_directory: ../dbt_project/energy_analytics
+            commands:
+              - "dbt build"
+            warehouse_id: ${var.warehouse_id}
+            catalog: workspace
+            schema: alberta_gold

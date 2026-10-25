@@ -17,12 +17,12 @@ with aer as (
 residus as (
     select
         uwi,
-        cast(null as varchar)         as operator_name,
-        cast(null as varchar)         as area,
+        cast(null as string)          as operator_name,
+        cast(null as string)          as area,
         'Puits hors référentiel AER'  as region,
-        cast(null as varchar)         as field,
-        cast(null as varchar)         as well_type,
-        cast(null as varchar)         as status,
+        cast(null as string)          as field,
+        cast(null as string)          as well_type,
+        cast(null as string)          as status,
         cast(null as date)            as spud_date,
         cast(null as double)          as latitude,
         cast(null as double)          as longitude
@@ -38,7 +38,7 @@ residus as (
         where p.activity_type = 'PROD'
           and p.product_type <> 'WATER'
           and upper(trim(p.uwi)) not in (select upper(trim(uwi)) from aer)
-    )
+    ) as candidats
     where rn = 1
 )
 

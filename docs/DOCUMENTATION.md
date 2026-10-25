@@ -13,7 +13,8 @@ where the data comes from.
 
 ## 1. Sources and raw files
 
-Dropped into `data/raw/`, gitignored, all public.
+Downloaded by `scripts/00_download_raw.py` into `data/raw/`, or into the volume's `raw/`
+folder when the scripts run as Databricks job tasks. Gitignored, all public.
 
 | File | Source | Used by |
 |---|---|---|
@@ -137,9 +138,12 @@ are available per well. Read it as operating margin, not net profitability.
 
 ## 4. Code conventions
 
-- **Path anchoring.** All five scripts compute `ROOT = Path(__file__).resolve().parent.parent`.
-  No hard-coded absolute paths; they run from any working directory.
-- **`data/raw/`** holds manual, gitignored source files. Scripts never write there.
+- **Path resolution.** `scripts/_paths.py` resolves the data root for every script:
+  `data/` in the repository by default, or the folder given by `--data-dir`, which the
+  Databricks job sets to the Unity Catalog volume. `--no-csv` skips the CSV copies. No
+  hard-coded absolute paths; the scripts run from any working directory.
+- **`data/raw/`** holds the downloaded source files, gitignored. Only script 00 writes
+  there.
 - **`data/processed/`** holds generated output, as Parquet for analysis and CSV for
   inspection. Gitignored.
 - **snake_case** throughout, Python and SQL alike.
@@ -196,7 +200,9 @@ les valeurs codées en dur et la provenance des données.
 
 ## 1. Sources et fichiers bruts
 
-Déposés dans `data/raw/`, gitignorés, tous publics.
+Téléchargés par `scripts/00_download_raw.py` dans `data/raw/`, ou dans le dossier `raw/`
+du volume quand les scripts tournent comme tâches du job Databricks. Gitignorés, tous
+publics.
 
 | Fichier | Source | Utilisé par |
 |---|---|---|
@@ -326,11 +332,13 @@ par puits. À lire comme une marge opératoire, pas comme une rentabilité nette
 
 ## 4. Conventions de code
 
-- **Ancrage des chemins.** Les cinq scripts calculent
-  `ROOT = Path(__file__).resolve().parent.parent`. Aucun chemin absolu en dur ; ils
-  fonctionnent quel que soit le répertoire de lancement.
-- **`data/raw/`** contient les fichiers sources manuels, gitignorés. Les scripts n'y
-  écrivent jamais.
+- **Résolution des chemins.** `scripts/_paths.py` fixe la racine des données pour tous
+  les scripts : `data/` dans le dépôt par défaut, ou le dossier passé en `--data-dir`,
+  que le job Databricks fait pointer sur le volume Unity Catalog. `--no-csv` supprime les
+  copies CSV. Aucun chemin absolu en dur ; les scripts fonctionnent quel que soit le
+  répertoire de lancement.
+- **`data/raw/`** contient les fichiers sources téléchargés, gitignorés. Seul le script 00
+  y écrit.
 - **`data/processed/`** contient les sorties générées, en Parquet pour l'analyse et en CSV
   pour l'inspection. Gitignorés.
 - **snake_case** partout, Python comme SQL.

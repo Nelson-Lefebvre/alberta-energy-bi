@@ -55,16 +55,19 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from production_universe import charger_volumes_mensuels
+# Databricks lance le fichier sans garantir que son dossier soit dans sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _paths import DATA_DIR, ECRIRE_CSV, PROCESSED_DIR  # noqa: E402
+from production_universe import charger_volumes_mensuels  # noqa: E402
 
 # --------------------------------------------------------------------------- #
-# Chemins ancrés sur la racine du projet
+# Chemins : data/ en local, Volume Unity Catalog sur Databricks (voir _paths.py)
 # --------------------------------------------------------------------------- #
-ROOT = Path(__file__).resolve().parent.parent
-PETRINEX_PARQUET = ROOT / "data" / "processed" / "petrinex24.parquet"
-DIM_PUITS_PARQUET = ROOT / "data" / "processed" / "dim_puits.parquet"
-OUT_PARQUET = ROOT / "data" / "processed" / "fact_couts.parquet"
-OUT_CSV = ROOT / "data" / "processed" / "fact_couts.csv"
+PETRINEX_PARQUET = PROCESSED_DIR / "petrinex24.parquet"
+DIM_PUITS_PARQUET = PROCESSED_DIR / "dim_puits.parquet"
+OUT_PARQUET = PROCESSED_DIR / "fact_couts.parquet"
+OUT_CSV = PROCESSED_DIR / "fact_couts.csv"
 
 # --------------------------------------------------------------------------- #
 # Paramètres de simulation — AER Annual Report 2023
@@ -99,7 +102,7 @@ OPEX_MIN, OPEX_MAX = 2.0, 60.0
 
 
 def main() -> int:
-    print(f"Racine projet : {ROOT}")
+    print(f"Données : {DATA_DIR}")
     for path in (PETRINEX_PARQUET, DIM_PUITS_PARQUET):
         if not path.exists():
             print(f"[ERREUR] Fichier requis absent : {path}", file=sys.stderr)
@@ -204,9 +207,11 @@ def main() -> int:
 
     OUT_PARQUET.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(OUT_PARQUET, index=False)
-    df.to_csv(OUT_CSV, index=False, encoding="utf-8")
+    if ECRIRE_CSV:
+        df.to_csv(OUT_CSV, index=False, encoding="utf-8")
     print(f"\nÉcrit : {OUT_PARQUET}  ({len(df):,} lignes)")
-    print(f"Écrit : {OUT_CSV}")
+    if ECRIRE_CSV:
+        print(f"Écrit : {OUT_CSV}")
     print(df.head().to_string(index=False))
     return 0
 

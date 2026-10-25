@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import requests
 import io
+import sys
 import zipfile
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -16,9 +17,12 @@ from pathlib import Path
 # CONFIGURATION
 # ══════════════════════════════════════════════════════════════════
 
-# scripts/01_ingest_petrinex.py → .parent = scripts/ → .parent = racine projet
-PROJECT_ROOT  = Path(__file__).resolve().parent.parent
-PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+# Databricks lance le fichier sans garantir que son dossier soit dans sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _paths import ECRIRE_CSV, PROCESSED_DIR  # noqa: E402
+
+# data/processed en local, Volume Unity Catalog sur Databricks (voir _paths.py)
 OUTPUT_PARQUET = PROCESSED_DIR / "petrinex24.parquet"
 OUTPUT_CSV     = PROCESSED_DIR / "petrinex24.csv"
 
@@ -258,14 +262,15 @@ def save_parquet(df: pd.DataFrame) -> None:
 
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     df_out.to_parquet(OUTPUT_PARQUET, engine="pyarrow", index=False, compression="snappy")
-    df_out.to_csv(OUTPUT_CSV, index=False, encoding="utf-8")
-
     size_pq = OUTPUT_PARQUET.stat().st_size / 1_048_576
-    size_csv = OUTPUT_CSV.stat().st_size / 1_048_576
     print(f"\n✅  Parquet sauvegardé → {OUTPUT_PARQUET}")
     print(f"    {size_pq:.1f} Mo  ·  {len(df_out):,} lignes  ·  Snappy")
-    print(f"✅  CSV sauvegardé     → {OUTPUT_CSV}")
-    print(f"    {size_csv:.1f} Mo  ·  {len(df_out):,} lignes")
+
+    if ECRIRE_CSV:
+        df_out.to_csv(OUTPUT_CSV, index=False, encoding="utf-8")
+        size_csv = OUTPUT_CSV.stat().st_size / 1_048_576
+        print(f"✅  CSV sauvegardé     → {OUTPUT_CSV}")
+        print(f"    {size_csv:.1f} Mo  ·  {len(df_out):,} lignes")
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -331,15 +336,19 @@ if __name__ == "__main__":
     # Étapes 1-2 : téléchargement parallèle + concat + typage
     df_brut = download_parallel(months)
 
-    if df_brut is not None:
-        # Étape 5 : filtres qualité
-        df_clean = filter_quality(df_brut)
+    # Aucun mois récupéré : échouer franchement. Avec un code 0, le Job continuerait
+    # sur le Parquet du mois précédent et publierait des chiffres périmés.
+    if df_brut is None:
+        raise SystemExit(1)
 
-        # Étape 6 : conversion BOE
-        df_clean = convert_to_boe(df_clean)
+    # Étape 5 : filtres qualité
+    df_clean = filter_quality(df_brut)
 
-        # Étape 7 : sauvegarde Parquet
-        save_parquet(df_clean)
+    # Étape 6 : conversion BOE
+    df_clean = convert_to_boe(df_clean)
 
-        # Rapport final
-        quality_report(df_brut, df_clean)
+    # Étape 7 : sauvegarde Parquet
+    save_parquet(df_clean)
+
+    # Rapport final
+    quality_report(df_brut, df_clean)

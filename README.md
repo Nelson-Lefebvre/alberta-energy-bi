@@ -2,11 +2,12 @@
 
 End-to-end analytics on Alberta's oil and gas basin, built from public data: Petrinex
 production filings, the AER well register, and Government of Alberta and Bank of Canada
-price series — ingested, modelled into a star schema, and reported in Power BI.
+price series / ingested and modelled on Databricks into a star schema, refreshed by a
+monthly job, and reported in Power BI.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Databricks](https://img.shields.io/badge/Databricks-Unity%20Catalog%20%C2%B7%20Delta-FF3621?logo=databricks&logoColor=white)
 ![dbt](https://img.shields.io/badge/dbt-1.11-FF694B?logo=dbt&logoColor=white)
-![DuckDB](https://img.shields.io/badge/DuckDB-1.5-FFF000?logo=duckdb&logoColor=black)
 ![Power BI](https://img.shields.io/badge/Power%20BI-PBIP-F2C811?logo=powerbi&logoColor=black)
 ![Tests](https://img.shields.io/badge/dbt%20build-46%20pass%20%C2%B7%201%20warn%20%C2%B7%200%20error-2E7D32)
 
@@ -20,9 +21,10 @@ price series — ingested, modelled into a star schema, and reported in Power BI
 
 Production volumes, prices and well locations are real. Emissions are computed from the
 fuel, vent and flare volumes operators declare to Petrinex, using NIR annex 6 and AER
-Directive 060 factors — no random draws. Only costs are simulated: operating costs, which
+Directive 060 factors (no random draws). Only costs are simulated: operating costs, which
 the report uses, and a capital cost it does not surface. Full assumptions in
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#assumed-trade-offs).
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#assumed-trade-offs). Figures above are the
+June 2026 snapshot; the monthly job moves the 24-month window forward.
 
 ---
 
@@ -53,7 +55,7 @@ denominator were in different units, so the more gas a region produced, the more
 OPEX/boe was diluted.
 
 After that fix, and after giving each product its own operating rate, OPEX/boe sits
-between **$10.05 and $19.22** across the five regions — still an inverse function of gas
+between **$10.05 and $19.22** across the five regions, still an inverse function of gas
 share, but now the *legitimate* one, ~$6/boe for gas against ~$20 for liquids.
 
 The second bug had the same shape. Emissions were generated for every Petrinex record,
@@ -73,10 +75,60 @@ out of band, 1 on intensity, and 413,760 orphaned (well, month) pairs**.
 
 That lesson has since been applied twice more. The OPEX test now checks **per product**
 rather than per region, because differentiating operating rates by product made regional
-variation legitimate — a regional band would now reject a correct result. And a new test
+variation legitimate, a regional band would now reject a correct result. And a new test
 asserts that every product carrying volume also carries revenue, after gas spent months
 priced at zero: 47% of the barrels, no revenue, and not one structural test could see it
 because the tables were valid and the total stayed plausible.
+
+---
+
+## Moving it to Databricks
+
+The first version ran on a laptop: Python scripts wrote Parquet, dbt built a DuckDB file,
+Power BI read it over ODBC, and every refresh was a manual decision. It now runs on
+Databricks Free Edition. The rule I set for the move was that it could change *where*
+things run and nothing about *what* they compute.
+
+```mermaid
+%%{init: {'theme':'base','themeVariables':{
+  'primaryColor':'#EEF3F8','primaryBorderColor':'#2C7FC4','primaryTextColor':'#10263A',
+  'lineColor':'#7B8D9C','fontFamily':'Segoe UI, system-ui, sans-serif','fontSize':'13px'}}}%%
+flowchart LR
+    src["Petrinex · AER ST37<br/>Alberta prices · Bank of Canada"]
+    subgraph dbx["Databricks job · 15th of each month, 6 a.m. Edmonton"]
+        py["Python scripts 00–05<br/>serverless tasks"]
+        vol[("Unity Catalog volume<br/>raw files + Parquet")]
+        brz["bronze<br/>5 Delta tables"]
+        slv["silver<br/>dbt staging views"]
+        gld["gold<br/>6 dbt marts"]
+        py --> vol
+        vol -- "read_files()" --> brz
+        brz --> slv --> gld
+    end
+    pbi["Power BI<br/>27 DAX measures, RLS"]
+    src --> py
+    gld --> pbi
+```
+
+**Proving nothing changed.** The scripts only gained a `--data-dir` flag, and reproduce
+the previous Parquet exactly (`assert_frame_equal`). The first bronze load reused those
+files, so both engines saw identical inputs: a fingerprint query over the six marts
+returns the same row counts and control totals, and `dbt build` ends as it did locally,
+46 pass, 1 warn, 0 error. The SQL dialect cost four small edits.
+
+**A bug only a scheduler would expose.** When every Petrinex download failed, the
+ingestion script logged it and exited with code 0. Run by hand, someone reads the log.
+Under a scheduler, the job would have republished last month's figures with every task
+green. It now exits non-zero, so the run stops and the failure email goes out.
+
+**Orchestration as code.** The job is declared in a bundle (`databricks.yml`,
+`resources/`) and deployed with the Databricks CLI: eight serverless tasks, pinned library
+versions, retries only where a task downloads. Every write is a Delta `CREATE OR REPLACE`,
+so a failed run leaves last month's tables readable and the report never sees a
+half-built one.
+
+**The report did not move.** Power BI now reads the gold schema through the Databricks
+connector; measures, RLS roles and visuals are unchanged.
 
 ---
 
@@ -129,7 +181,11 @@ coefficient of variation of 5.2%.
 names, so the hard part is UWI reconstruction, a DLS to lat/lon conversion, and joins
 back to the Petrinex reference files. **99.0% coverage** against the production data.
 
-**Modelling.** dbt Core on DuckDB. Three facts, three dimensions, and a conformed
+**Platform.** Databricks Free Edition: a Unity Catalog volume for files, then three
+schemas, `alberta_bronze`, `alberta_silver` and `alberta_gold`, in Delta. One job runs the
+whole chain on serverless compute; dbt and Power BI both use the SQL warehouse.
+
+**Modelling.** dbt Core on Databricks SQL. Three facts, three dimensions, and a conformed
 `dim_region` that all three facts share. Without it a region slicer filters one fact and
 silently leaves the others alone.
 
@@ -226,20 +282,3 @@ The dbt catalogue is committed under `docs/dbt/`. GitHub serves those files as s
 rather than as a rendered page, so open `docs/dbt/index.html` from a local clone, or
 regenerate it with `dbt docs generate && dbt docs serve` from `dbt_project/energy_analytics`.
 
----
-
-## What I'd do next
-
-The **inactive well inventory** is the piece I want most. 450,583 wells on the register
-have no production — 75% of it — and 278,554 of those are already abandoned. Reclamation
-liability is a live financial and political issue in Alberta, the data is already in the
-model, and it's the one genuinely non-simulated finding here that I haven't used.
-
-CAPEX needs recalibrating: it lands near $135k per producing well against a real $2 to 8 million,
-and it isn't surfaced anywhere yet. Data stops at June 2026 and refresh isn't
-automated. Two pages still expose UWI slicers with 599k values, which needs a search
-control instead.
-
----
-
-Data Analyst portfolio project, Calgary 2026.

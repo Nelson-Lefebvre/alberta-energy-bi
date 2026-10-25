@@ -72,18 +72,22 @@ import pandas as pd
 import requests
 from dateutil.relativedelta import relativedelta
 
+# Databricks lance le fichier sans garantir que son dossier soit dans sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _paths import DATA_DIR, ECRIRE_CSV, PROCESSED_DIR  # noqa: E402
+
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 except (AttributeError, ValueError):
     pass
 
 # --------------------------------------------------------------------------- #
-# Chemins ancrés sur la racine du projet
+# Chemins : data/ en local, Volume Unity Catalog sur Databricks (voir _paths.py)
 # --------------------------------------------------------------------------- #
-ROOT = Path(__file__).resolve().parent.parent
-OUT_PARQUET = ROOT / "data" / "processed" / "dim_prix.parquet"
-OUT_CSV = ROOT / "data" / "processed" / "dim_prix.csv"
-PETRINEX_PARQUET = ROOT / "data" / "processed" / "petrinex24.parquet"
+OUT_PARQUET = PROCESSED_DIR / "dim_prix.parquet"
+OUT_CSV = PROCESSED_DIR / "dim_prix.csv"
+PETRINEX_PARQUET = PROCESSED_DIR / "petrinex24.parquet"
 
 # --------------------------------------------------------------------------- #
 # Paramètres métier
@@ -224,7 +228,7 @@ def fetch_usdcad(first: date) -> pd.DataFrame:
 
 
 def main() -> int:
-    print(f"Racine projet : {ROOT}")
+    print(f"Données : {DATA_DIR}")
     first, last = month_window()
     print(f"Fenêtre : {first:%Y-%m} -> {last:%Y-%m}")
 
@@ -315,9 +319,11 @@ def main() -> int:
 
     OUT_PARQUET.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(OUT_PARQUET, index=False)
-    df.to_csv(OUT_CSV, index=False, encoding="utf-8")
+    if ECRIRE_CSV:
+        df.to_csv(OUT_CSV, index=False, encoding="utf-8")
     print(f"\nÉcrit : {OUT_PARQUET}  ({len(df)} mois)")
-    print(f"Écrit : {OUT_CSV}")
+    if ECRIRE_CSV:
+        print(f"Écrit : {OUT_CSV}")
     print(df.to_string(index=False))
     return 0
 

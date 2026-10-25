@@ -25,7 +25,7 @@ capex_unique as (
         select date_key, uwi, capex,
                row_number() over (partition by uwi order by date_key) as rn
         from {{ ref('stg_costs') }}
-    )
+    ) as premiers
     where rn = 1
 ),
 

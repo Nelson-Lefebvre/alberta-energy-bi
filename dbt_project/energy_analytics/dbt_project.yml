@@ -18,7 +18,10 @@ clean-targets:
 
 models:
   energy_analytics:
+    # Schémas Unity Catalog pris tels quels grâce à macros/generate_schema_name.sql
     staging:
       +materialized: view
+      +schema: alberta_silver
     marts:
       +materialized: table
+      +schema: alberta_gold

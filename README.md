@@ -2,7 +2,7 @@
 
 End-to-end analytics on Alberta's oil and gas basin, built from public data: Petrinex
 production filings, the AER well register, and Government of Alberta and Bank of Canada
-price series — ingested and modelled on Databricks into a star schema, refreshed by a
+price series / ingested and modelled on Databricks into a star schema, refreshed by a
 monthly job, and reported in Power BI.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
@@ -21,7 +21,7 @@ monthly job, and reported in Power BI.
 
 Production volumes, prices and well locations are real. Emissions are computed from the
 fuel, vent and flare volumes operators declare to Petrinex, using NIR annex 6 and AER
-Directive 060 factors — no random draws. Only costs are simulated: operating costs, which
+Directive 060 factors (no random draws). Only costs are simulated: operating costs, which
 the report uses, and a capital cost it does not surface. Full assumptions in
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#assumed-trade-offs). Figures above are the
 June 2026 snapshot; the monthly job moves the 24-month window forward.
@@ -55,7 +55,7 @@ denominator were in different units, so the more gas a region produced, the more
 OPEX/boe was diluted.
 
 After that fix, and after giving each product its own operating rate, OPEX/boe sits
-between **$10.05 and $19.22** across the five regions — still an inverse function of gas
+between **$10.05 and $19.22** across the five regions, still an inverse function of gas
 share, but now the *legitimate* one, ~$6/boe for gas against ~$20 for liquids.
 
 The second bug had the same shape. Emissions were generated for every Petrinex record,
@@ -75,7 +75,7 @@ out of band, 1 on intensity, and 413,760 orphaned (well, month) pairs**.
 
 That lesson has since been applied twice more. The OPEX test now checks **per product**
 rather than per region, because differentiating operating rates by product made regional
-variation legitimate — a regional band would now reject a correct result. And a new test
+variation legitimate, a regional band would now reject a correct result. And a new test
 asserts that every product carrying volume also carries revenue, after gas spent months
 priced at zero: 47% of the barrels, no revenue, and not one structural test could see it
 because the tables were valid and the total stayed plausible.
@@ -282,26 +282,3 @@ The dbt catalogue is committed under `docs/dbt/`. GitHub serves those files as s
 rather than as a rendered page, so open `docs/dbt/index.html` from a local clone, or
 regenerate it with `dbt docs generate && dbt docs serve` from `dbt_project/energy_analytics`.
 
----
-
-## What I'd do next
-
-The **inactive well inventory** is the piece I want most. 450,583 wells on the register
-have no production — 75% of it — and 278,554 of those are already abandoned. Reclamation
-liability is a live financial and political issue in Alberta, the data is already in the
-model, and it's the one genuinely non-simulated finding here that I haven't used.
-
-CAPEX needs recalibrating: it lands near $135k per producing well against a real $2 to 8 million,
-and it isn't surfaced anywhere yet. Two pages still expose UWI slicers with 599k values,
-which needs a search control instead.
-
-On the platform side, the report is still refreshed from Power BI Desktop. Next is to
-publish it to the Power BI Service and trigger the dataset refresh from a final job task,
-so the report updates as soon as gold does rather than on a guessed timer. Bronze also
-rewrites the 24-month window on every run, so a Petrinex revision overwrites the figure it
-corrects; loading each month with `COPY INTO` would keep every published version. A CI
-check running `databricks bundle validate` on pull requests is the last gap.
-
----
-
-Data Analyst portfolio project, Calgary 2026.

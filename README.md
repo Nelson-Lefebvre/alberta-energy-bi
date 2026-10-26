@@ -2,7 +2,7 @@
 
 End-to-end analytics on Alberta's oil and gas basin, built from public data: Petrinex
 production filings, the AER well register, and Government of Alberta and Bank of Canada
-price series / ingested and modelled on Databricks into a star schema, refreshed by a
+price series, ingested and modelled on Databricks into a star schema, refreshed by a
 monthly job, and reported in Power BI.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
